@@ -1,108 +1,98 @@
 ---
 title: Q01 — Evidence Integrity and Hashing
-description: Establish the identity, size, structure, and cryptographic fingerprints of the PC evidence image before interpretation.
+description: Verify the PC evidence image before beginning forensic examination.
 ---
 
 ## Question
 
-**What are the hash values (MD5 and SHA-1) of the image, and do the acquisition and verification values agree?**
+**What are the MD5 and SHA-1 values of the image, and do the verification values agree?**
 
-The original NIST question covers all images in the case. This learning path starts with the PC DD image.
-
-## Why this matters
-
-Before interpreting filesystems, Registry hives, user activity, or timestamps, we first establish exactly which evidence object we are examining.
-
-A hash is a reproducible fingerprint of the byte stream. Matching digest values provide a strong integrity check that the same bytes are being examined at different stages of handling.
-
-The filename and extension alone are not enough to establish what the evidence contains.
-
-## Evidence source
+The original NIST question covers all evidence images in the case. This learning path begins with the PC DD image:
 
 ~~~text
 cfreds_2015_data_leakage_pc.dd
 ~~~
 
-## Step 1 — Identify the evidence object
+## Why this comes first
 
-Start with basic filesystem metadata:
+Before examining partitions, filesystems, Registry hives, user accounts, or timestamps, we first verify the evidence image itself.
+
+The reason is simple:
+
+~~~text
+receive evidence
+   ↓
+calculate hashes
+   ↓
+compare with the expected / recorded hashes
+   ↓
+match?
+   ├── yes → begin forensic examination
+   └── no  → stop and investigate the discrepancy
+~~~
+
+There is little value in interpreting the contents of an image as the expected evidence set if its integrity has not first been established.
+
+A hash does not tell us what happened on the computer. It tells us whether we are working with the same byte stream that was acquired or previously verified.
+
+## Step 1 — Record the evidence object
+
+Start by recording basic information about the file:
 
 ~~~bash
-file cfreds_2015_data_leakage_pc.dd
 stat cfreds_2015_data_leakage_pc.dd
 ~~~
 
-The image size observed during the lab was:
+The image size observed in this lab was:
 
 ~~~text
 21,474,836,480 bytes
 20 GiB
 ~~~
 
-This establishes the size of the evidence object being hashed.
+This gives us a basic description of the object we are about to hash.
 
-## Step 2 — Inspect the beginning of the byte stream
+## Step 2 — Calculate the hashes
 
-A DD image is a raw byte-for-byte representation rather than a forensic container with a rich container header. To check whether the content is consistent with a disk image, inspect sector 0:
-
-~~~bash
-xxd -g 1 -l 512 cfreds_2015_data_leakage_pc.dd
-~~~
-
-The first sector contains coherent MBR structures. Among the observed values are:
-
-~~~text
-MBR disk identifier at 0x1B8: 20 57 26 f0
-MBR signature at 0x1FE:       55 aa
-~~~
-
-Interpreting the four-byte disk identifier as little-endian gives:
-
-~~~text
-0xf0265720
-~~~
-
-The partition table entries are examined in detail in Question 2.
-
-This byte-level check does not replace hashing. It answers a different question: whether the content is structurally consistent with the disk evidence we expect to be examining.
-
-## Step 3 — Calculate cryptographic hashes
-
-Calculate the digests directly from the evidence image:
+Calculate MD5 and SHA-1 directly from the complete image:
 
 ~~~bash
 md5sum cfreds_2015_data_leakage_pc.dd
 sha1sum cfreds_2015_data_leakage_pc.dd
 ~~~
 
-The exact calculated digest values will be copied into this public page only from the lab's local verification record after they are revalidated. They are intentionally not taken from an answer key.
+Each command reads the full evidence image and produces a digest for that exact sequence of bytes.
 
-## Verification model
+## Step 3 — Compare the values
+
+The calculated values should be compared with the acquisition or verification hashes associated with the evidence set.
+
+The decision point is:
 
 ~~~text
-evidence file
-   ↓
-establish size and object identity
-   ↓
-inspect raw structure
-   ↓
-calculate MD5
-   ↓
-calculate SHA-1
-   ↓
-compare with the recorded acquisition / verification values
+calculated MD5 / SHA-1
+        ↓
+compare with recorded values
+        ↓
+        match
+        ↓
+integrity verification passes
+        ↓
+proceed to Question 2
 ~~~
+
+If a value does not match, the correct response is not to silently continue. The discrepancy should first be explained—for example, a different copy, a transfer problem, or a different version of the evidence image.
 
 ## Answer
 
-For the PC DD image, the evidence object is a 20 GiB raw disk image whose first sector contains coherent MBR structures.
+The PC DD image is the evidence object used for the remainder of this learning path.
 
-The MD5 and SHA-1 values are derived directly from the complete image with \`md5sum\` and \`sha1sum\`. The final digest strings are pending transfer from the locally calculated verification record.
+The final MD5 and SHA-1 strings will be added here from the locally calculated verification record rather than copied from an answer key.
 
 ## What this establishes
 
-This process establishes the identity and integrity fingerprint of the exact byte stream being examined and confirms that its content is structurally consistent with raw disk evidence.
+Hash verification establishes that the exact byte stream being examined matches the expected evidence image.
 
 ## What this does not establish
 
-A matching hash does not explain what happened on the system. It establishes byte-level identity, not the meaning of the evidence contained within the image.
+A matching hash does not identify partitions, filesystems, users, or activity. Those conclusions begin only after integrity verification has passed.
