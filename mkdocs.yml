@@ -1,0 +1,69 @@
+site_name: DFIR Journey
+site_description: Practical DFIR notes, reproducible labs, and forensic artifact analysis.
+repo_url: https://github.com/Aidentrix/dfir-notes
+repo_name: Aidentrix/dfir-notes
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: white
+      accent: deep purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: black
+      accent: deep purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+nav:
+  - Home: index.md
+  - Fundamentals:
+      - Overview: fundamentals/index.md
+  - Filesystem Forensics:
+      - Overview: filesystem-forensics/index.md
+  - Windows:
+      - Overview: windows/index.md
+      - Registry:
+          - Overview: windows/registry/index.md
+      - Artifacts:
+          - Overview: windows/artifacts/index.md
+  - Labs:
+      - Overview: labs/index.md
+      - NIST CFReDS:
+          - Overview: labs/nist-cfreds/index.md
+          - Disk and Partitions: labs/nist-cfreds/disk-and-partitions.md
+          - NTFS and MFT: labs/nist-cfreds/ntfs-and-mft.md
+          - Windows Registry: labs/nist-cfreds/windows-registry.md
+          - User Accounts: labs/nist-cfreds/user-accounts.md
+          - Network Configuration: labs/nist-cfreds/network-configuration.md
+          - Timeline: labs/nist-cfreds/timeline.md
+  - Tooling:
+      - Overview: tooling/index.md
+  - References:
+      - Overview: references/index.md

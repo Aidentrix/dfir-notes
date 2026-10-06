@@ -1,0 +1,29 @@
+:root {
+  --md-primary-fg-color: #ffffff;
+  --md-primary-bg-color: #202124;
+}
+
+[data-md-color-scheme="default"] .md-header {
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: none;
+}
+
+[data-md-color-scheme="default"] .md-tabs {
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: none;
+}
+
+.md-main__inner {
+  max-width: 92rem;
+}
+
+.md-content__inner {
+  max-width: 52rem;
+}
+
+.md-sidebar--secondary .md-nav__title {
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-size: .7rem;
+  font-weight: 700;
+}

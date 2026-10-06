@@ -1,0 +1,78 @@
+# Windows Registry
+
+The Windows Registry is a major source of system, user, application, and configuration evidence.
+
+## Core machine hives
+
+Common machine hives stored under `C:\Windows\System32\config` include:
+
+```text
+SYSTEM
+SOFTWARE
+SAM
+SECURITY
+DEFAULT
+COMPONENTS
+```
+
+User-specific hives such as `NTUSER.DAT` and `UsrClass.dat` live in user profile locations.
+
+## Active control set
+
+Do not blindly assume `ControlSet001` is active. Establish the active control set from:
+
+```text
+SYSTEM\Select\Current
+```
+
+and then interpret control-set-specific artifacts in that context.
+
+## Useful paths
+
+### Operating system information
+
+```text
+SOFTWARE\Microsoft\Windows NT\CurrentVersion
+```
+
+### Time zone
+
+```text
+SYSTEM\ControlSet00x\Control\TimeZoneInformation
+```
+
+### Computer name
+
+```text
+SYSTEM\ControlSet00x\Control\ComputerName\ComputerName
+```
+
+### Shutdown time
+
+```text
+SYSTEM\ControlSet00x\Control\Windows\ShutdownTime
+```
+
+### TCP/IP interfaces
+
+```text
+SYSTEM\ControlSet00x\Services\Tcpip\Parameters\Interfaces\<GUID>
+```
+
+## Method
+
+The preferred workflow is:
+
+```text
+artifact-aware inspection
+        ↓
+identify the field and encoding
+        ↓
+parser or tool interpretation
+        ↓
+manual/Python validation for important binary values
+        ↓
+corroborate with another artifact when useful
+```
+
+A parser is useful evidence-processing machinery, but it does not replace understanding the source artifact.
