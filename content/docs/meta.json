@@ -1,0 +1,4 @@
+{
+  "title": "DFIR Journey",
+  "pages": ["index", "fundamentals", "filesystem-forensics", "windows", "labs", "tooling", "references"]
+}

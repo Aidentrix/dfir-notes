@@ -1,0 +1,34 @@
+---
+title: Tooling
+description: Tools used to inspect, extract, and validate forensic artifacts.
+---
+
+Tools are selected according to the artifact and the validation question.
+
+## Sleuth Kit
+
+~~~text
+fdisk   partition geometry
+fsstat  filesystem metadata
+fls     directory and file enumeration
+istat   filesystem metadata for a record
+icat    file-content extraction
+~~~
+
+For the current image, Sleuth Kit partition offsets supplied with -o are expressed in sectors.
+
+## xxd
+
+~~~bash
+xxd -g 1 -s OFFSET -l LENGTH image.dd
+~~~
+
+The -s option seeks to an offset; it is not a search operation.
+
+## hivex
+
+hivexsh is useful for interactive Registry-hive navigation, while hivexget can retrieve a specific raw Registry value for scripted validation.
+
+## Python
+
+Small Python snippets are used for deterministic decoding and repetitive conversion. The artifact structure must still establish what the selected bytes mean.

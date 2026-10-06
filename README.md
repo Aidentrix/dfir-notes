@@ -1,26 +1,35 @@
 # DFIR Journey
 
-Practical notes, reproducible labs, and forensic artifact analysis.
+Practical DFIR notes, reproducible labs, and forensic artifact analysis.
 
-This repository publishes curated learning notes from hands-on digital forensics and incident response work using public or otherwise authorized training material.
+This repository is the public, curated layer of my DFIR study work. It is intentionally evidence-first: conclusions should be traceable to the artifact, the relevant structure, the observed value, and the validation method.
 
-The emphasis is on tracing conclusions back to evidence:
+## Stack
 
-```text
-Artifact -> structure -> raw evidence -> interpretation -> validation
-```
+- Fumadocs
+- Next.js static export
+- shadcn/ui design tokens
+- Tailwind CSS
+- GitHub Pages
 
-## Scope
+## Local development
 
-- digital forensics fundamentals
-- filesystem and partition analysis
-- NTFS and MFT analysis
-- Windows Registry forensics
-- Windows forensic artifacts
-- timeline analysis
-- DFIR tooling
-- reproducible public labs
+~~~bash
+npm install
+npm run dev
+~~~
 
-## Training note
+Open http://localhost:3000.
 
-Laboratory exercises are educational analyses of public or authorized training data. They are not presented as real-world investigative casework.
+## Validation
+
+~~~bash
+npm run typecheck
+npm run build
+~~~
+
+The production build is exported to out/.
+
+## Training scope
+
+Laboratory exercises use public or otherwise authorized training data. They are educational analyses and are not presented as real-world investigative casework.

@@ -1,0 +1,20 @@
+---
+title: NIST CFReDS Data Leakage Case
+description: Evidence-first analysis of the public CFReDS Data Leakage training image.
+---
+
+This lab uses the public NIST CFReDS Data Leakage Case dataset as a forensic training source.
+
+## Purpose
+
+The objective is to derive answers independently from the image, then trace each conclusion back to the artifact that supports it.
+
+## Working approach
+
+The analysis uses tools such as Sleuth Kit, xxd, hivexsh, hivexget, and small Python snippets for deterministic decoding.
+
+> **Recognize enough to orient. Validate enough to trust the interpretation. Look up the exact structure when precision matters.**
+
+## Current progression
+
+The study has covered MBR partition validation, NTFS boot-sector and MFT location reasoning, Windows Registry hive extraction, operating system and timezone artifacts, computer name, local user accounts, SAM metadata, shutdown time, and DHCP configuration.

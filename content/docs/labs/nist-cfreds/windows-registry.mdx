@@ -1,0 +1,43 @@
+---
+title: Windows Registry
+description: OS build, timezone, and computer-name artifacts from the extracted hives.
+---
+
+Registry hives were extracted from the NTFS filesystem and validated by their regf hive signature.
+
+## Operating system information
+
+SOFTWARE\Microsoft\Windows NT\CurrentVersion contained:
+
+~~~text
+CurrentBuildNumber = 7601
+CSDVersion         = Service Pack 1
+BuildLab           = 7601.win7sp1_gdr.130828-1532
+BuildLabEx         = 7601.18247.amd64fre.win7sp1_gdr.130828-1532
+PathName           = C:\Windows
+~~~
+
+These values support Windows build 7601, Service Pack 1, and an amd64/x64 build family.
+
+## Time zone
+
+From SYSTEM\ControlSet001\Control\TimeZoneInformation:
+
+~~~text
+TimeZoneKeyName             = Eastern Standard Time
+Bias                        = 300
+ActiveTimeBias              = 240
+DynamicDaylightTimeDisabled = 0
+~~~
+
+Windows bias uses UTC = local time + bias. The effective recorded bias corresponds to UTC-4 at the time represented by ActiveTimeBias.
+
+## Computer name
+
+From SYSTEM\ControlSet001\Control\ComputerName\ComputerName:
+
+~~~text
+INFORMANT-PC
+~~~
+
+No ActiveComputerName subkey was assumed when it was not present in this image.

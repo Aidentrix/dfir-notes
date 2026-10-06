@@ -1,0 +1,37 @@
+---
+title: Timeline
+description: Correlating derived timestamps without overstating causality.
+---
+
+Timeline work combines independently derived timestamps while preserving each artifact's semantics.
+
+## Current events
+
+| UTC time | Artifact | Event |
+| --- | --- | --- |
+| 2015-03-25 14:45:59.180205 | SAM | informant last recorded logon |
+| 2015-03-25 15:19:50 | SYSTEM / TCP/IP | DHCP lease obtained |
+| 2015-03-25 15:31:05.232008 | SYSTEM | last recorded shutdown |
+| 2015-03-25 15:34:50 | SYSTEM / TCP/IP | DHCP T1 |
+| 2015-03-25 15:46:05 | SYSTEM / TCP/IP | DHCP T2 |
+| 2015-03-25 15:49:50 | SYSTEM / TCP/IP | DHCP lease termination time |
+
+## Shutdown time
+
+SYSTEM\ControlSet001\Control\Windows\ShutdownTime contained:
+
+~~~text
+57 a9 48 b5 10 67 d0 01
+~~~
+
+Decoded as little-endian Windows FILETIME:
+
+~~~text
+2015-03-25 15:31:05.232008 UTC
+~~~
+
+## Interpretation boundary
+
+The shutdown record occurred after the DHCP lease was obtained and before the lease's T1 and expiration times.
+
+That temporal relationship is supported. It does **not** by itself establish a causal relationship between the shutdown and the network state.
