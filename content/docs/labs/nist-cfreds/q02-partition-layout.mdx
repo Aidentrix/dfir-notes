@@ -1,33 +1,39 @@
 ---
 title: Q02 — Partition Layout
-description: Derive the PC image partition layout from tool output and validate the result against the raw MBR bytes.
+description: Use fdisk to identify the disk layout, then validate the result against the raw MBR bytes.
 ---
 
 ## Question
 
 **Identify the partition information of the PC image.**
 
-## Why this matters
+## Starting point
 
-Every later filesystem path depends on partition geometry.
+Question 1 is the integrity gate.
 
-Before asking NTFS where a Registry hive or user file is located, we need to know where the partition begins, how large it is, and how sector addresses translate into absolute byte offsets inside the disk image.
+Only after the evidence image has been verified do we begin interpreting its contents.
 
-## Evidence source
+For this question, we want to answer:
 
 ~~~text
-cfreds_2015_data_leakage_pc.dd
+How is the disk divided?
+
+Where does each partition begin?
+
+How large is each partition?
+
+Which byte offset should later filesystem tools use?
 ~~~
 
-## Step 1 — Read the disk geometry
+## Step 1 — Let fdisk describe the disk
 
-Use \`fdisk\` to interpret the partition table:
+Start with:
 
 ~~~bash
 fdisk -l cfreds_2015_data_leakage_pc.dd
 ~~~
 
-The observed disk geometry was:
+The important values observed were:
 
 ~~~text
 Disk size:       20 GiB
@@ -37,54 +43,110 @@ Disk label:      DOS / MBR
 Disk identifier: 0xf0265720
 ~~~
 
-The tool reported two partitions.
+The image contains two partitions:
 
 | Partition | Boot | Start LBA | End LBA | Sectors | Approx. size | Type |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
 | 1 | active | 2,048 | 206,847 | 204,800 | 100 MiB | 0x07 |
 | 2 | — | 206,848 | 41,940,991 | 41,734,144 | 19.9 GiB | 0x07 |
 
-The tool output is useful, but the important fields can also be read directly from the MBR.
+At this point, `fdisk` has interpreted the partition table for us.
 
-## Step 2 — Examine the raw MBR
+The next step is to verify the important values against the raw bytes.
 
-The MBR is the first 512-byte sector. The partition table begins at byte offset \`0x1BE\`.
+## Step 2 — Why the 512-byte sector size matters
 
-Inspect the relevant area:
+`fdisk` reported:
+
+~~~text
+Logical sector size = 512 bytes
+~~~
+
+This number matters in two ways.
+
+First, the MBR data we need is located in **LBA 0**, the first logical sector of the disk image.
+
+For this image:
+
+~~~text
+LBA 0
+= first 512-byte sector
+= byte offsets 0 through 511
+= 0x000 through 0x1FF
+~~~
+
+So reading the first 512 bytes gives us the complete MBR structure we need to inspect:
+
+~~~bash
+xxd -g 1 -l 512 cfreds_2015_data_leakage_pc.dd
+~~~
+
+Second, the same 512-byte logical sector size is used later to convert partition LBAs into absolute byte offsets:
+
+~~~text
+byte offset = LBA × 512
+~~~
+
+The value 512 is not being guessed. It comes from the disk geometry reported for this image.
+
+## Step 3 — Understand the MBR layout
+
+Inside the first 512 bytes, the fields we care about are near the end:
+
+~~~text
+0x1B8–0x1BB   disk identifier
+0x1BE–0x1CD   partition entry 1
+0x1CE–0x1DD   partition entry 2
+0x1DE–0x1ED   partition entry 3
+0x1EE–0x1FD   partition entry 4
+0x1FE–0x1FF   MBR signature 55 AA
+~~~
+
+A focused view is:
 
 ~~~bash
 xxd -g 1 -s 0x1b8 -l 72 cfreds_2015_data_leakage_pc.dd
 ~~~
 
-### Disk identifier
+The MBR ends with:
 
-At offsets \`0x1B8-0x1BB\`:
+~~~text
+55 aa
+~~~
+
+at offsets:
+
+~~~text
+0x1FE–0x1FF
+~~~
+
+## Step 4 — Validate the disk identifier
+
+At offsets `0x1B8–0x1BB` we observed:
 
 ~~~text
 20 57 26 f0
 ~~~
 
-This four-byte numeric field is little-endian:
+This is a four-byte little-endian integer.
+
+Interpreting the bytes in little-endian order gives:
 
 ~~~text
-20 57 26 f0
-↓ reverse byte significance for the integer
-f0 26 57 20
-↓
 0xf0265720
 ~~~
 
-This agrees with the disk identifier reported by \`fdisk\`.
+This matches the disk identifier reported by `fdisk`.
 
-## Step 3 — Decode partition 1
+## Step 5 — Decode partition 1
 
-The first 16-byte partition entry begins at \`0x1BE\`:
+The first 16-byte partition entry begins at `0x1BE`:
 
 ~~~text
 80 20 21 00 07 df 13 0c 00 08 00 00 00 20 03 00
 ~~~
 
-Relevant fields:
+The important fields are:
 
 ~~~text
 80             boot / active flag
@@ -93,14 +155,14 @@ Relevant fields:
 00 20 03 00    sector count
 ~~~
 
-Decode the little-endian numeric fields:
+Decode the numeric fields as little-endian values:
 
 ~~~text
-start LBA   = 2048
+starting LBA = 2048
 sector count = 204800
 ~~~
 
-Convert the starting sector to an absolute byte offset:
+Now convert the starting LBA to a byte offset:
 
 ~~~text
 2048 × 512
@@ -108,22 +170,28 @@ Convert the starting sector to an absolute byte offset:
 = 0x100000
 ~~~
 
-## Step 4 — Decode partition 2
+So partition 1 begins at:
 
-The second entry begins at \`0x1CE\`:
+~~~text
+0x100000
+~~~
+
+## Step 6 — Decode partition 2
+
+The second partition entry begins at `0x1CE`:
 
 ~~~text
 00 df 14 0c 07 fe ff ff 00 28 03 00 00 d0 7c 02
 ~~~
 
-Relevant fields decode to:
+The important decoded values are:
 
 ~~~text
-start LBA    = 206848
+starting LBA = 206848
 sector count = 41734144
 ~~~
 
-Convert its start to a byte offset:
+Convert the starting LBA to a byte offset:
 
 ~~~text
 206848 × 512
@@ -131,31 +199,36 @@ Convert its start to a byte offset:
 = 0x6500000
 ~~~
 
-## Step 5 — Confirm the filesystem independently
+So partition 2 begins at:
 
-Partition type \`0x07\` is a partition-table type value. It is not by itself sufficient proof that the partition contains NTFS.
+~~~text
+0x6500000
+~~~
 
-Examine partition 2 as a filesystem:
+## Step 7 — Confirm the filesystem separately
+
+Both partition entries use type `0x07`.
+
+That is a partition-table type value, but it is not enough by itself to prove that the partition contains NTFS.
+
+Use Sleuth Kit to examine partition 2:
 
 ~~~bash
 fsstat -o 206848 cfreds_2015_data_leakage_pc.dd
 ~~~
 
-The resulting filesystem metadata is coherent with NTFS, including a 512-byte sector size and 4096-byte cluster size.
-
-The important distinction is:
+The filesystem metadata is coherent with NTFS, including:
 
 ~~~text
-MBR type 0x07
-    → partition-type indication
-
-coherent NTFS boot-sector and filesystem metadata
-    → filesystem confirmation
+Sector size:  512 bytes
+Cluster size: 4096 bytes
 ~~~
+
+This gives us a separate filesystem-level confirmation.
 
 ## Answer
 
-The PC image uses an MBR partition table with two \`0x07\` partitions:
+The PC image uses an MBR partition table with two partitions:
 
 ~~~text
 Partition 1
@@ -172,12 +245,30 @@ Partition 2
   Size:         approximately 19.9 GiB
 ~~~
 
-Partition 2 contains the main NTFS filesystem used for the subsequent Windows analysis.
+Partition 2 contains the main NTFS filesystem used for the later Windows analysis.
 
 ## What this establishes
 
-This establishes the disk's MBR partition geometry and the exact starting byte offsets required for later filesystem examination.
+This establishes the disk's MBR partition layout and the exact byte offsets needed to examine each partition.
+
+It also demonstrates the validation chain:
+
+~~~text
+fdisk
+   ↓
+logical sector size = 512 bytes
+   ↓
+read LBA 0 / first 512 bytes
+   ↓
+decode the raw MBR partition entries
+   ↓
+LBA × 512
+   ↓
+absolute byte offsets
+   ↓
+fsstat confirms the filesystem
+~~~
 
 ## What this does not establish
 
-Partition geometry alone does not identify the installed Windows version, user activity, or the meaning of files stored inside the partitions. Those require filesystem and operating-system artifacts.
+The partition table tells us where the filesystems are located. It does not identify the installed Windows version, the users, or what activity occurred on the system.
