@@ -1,0 +1,183 @@
+---
+title: Q02 — Partition Layout
+description: Derive the PC image partition layout from tool output and validate the result against the raw MBR bytes.
+---
+
+## Question
+
+**Identify the partition information of the PC image.**
+
+## Why this matters
+
+Every later filesystem path depends on partition geometry.
+
+Before asking NTFS where a Registry hive or user file is located, we need to know where the partition begins, how large it is, and how sector addresses translate into absolute byte offsets inside the disk image.
+
+## Evidence source
+
+~~~text
+cfreds_2015_data_leakage_pc.dd
+~~~
+
+## Step 1 — Read the disk geometry
+
+Use \`fdisk\` to interpret the partition table:
+
+~~~bash
+fdisk -l cfreds_2015_data_leakage_pc.dd
+~~~
+
+The observed disk geometry was:
+
+~~~text
+Disk size:       20 GiB
+Total sectors:   41,943,040
+Logical sector:  512 bytes
+Disk label:      DOS / MBR
+Disk identifier: 0xf0265720
+~~~
+
+The tool reported two partitions.
+
+| Partition | Boot | Start LBA | End LBA | Sectors | Approx. size | Type |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| 1 | active | 2,048 | 206,847 | 204,800 | 100 MiB | 0x07 |
+| 2 | — | 206,848 | 41,940,991 | 41,734,144 | 19.9 GiB | 0x07 |
+
+The tool output is useful, but the important fields can also be read directly from the MBR.
+
+## Step 2 — Examine the raw MBR
+
+The MBR is the first 512-byte sector. The partition table begins at byte offset \`0x1BE\`.
+
+Inspect the relevant area:
+
+~~~bash
+xxd -g 1 -s 0x1b8 -l 72 cfreds_2015_data_leakage_pc.dd
+~~~
+
+### Disk identifier
+
+At offsets \`0x1B8-0x1BB\`:
+
+~~~text
+20 57 26 f0
+~~~
+
+This four-byte numeric field is little-endian:
+
+~~~text
+20 57 26 f0
+↓ reverse byte significance for the integer
+f0 26 57 20
+↓
+0xf0265720
+~~~
+
+This agrees with the disk identifier reported by \`fdisk\`.
+
+## Step 3 — Decode partition 1
+
+The first 16-byte partition entry begins at \`0x1BE\`:
+
+~~~text
+80 20 21 00 07 df 13 0c 00 08 00 00 00 20 03 00
+~~~
+
+Relevant fields:
+
+~~~text
+80             boot / active flag
+07             partition type
+00 08 00 00    starting LBA
+00 20 03 00    sector count
+~~~
+
+Decode the little-endian numeric fields:
+
+~~~text
+start LBA   = 2048
+sector count = 204800
+~~~
+
+Convert the starting sector to an absolute byte offset:
+
+~~~text
+2048 × 512
+= 1,048,576 bytes
+= 0x100000
+~~~
+
+## Step 4 — Decode partition 2
+
+The second entry begins at \`0x1CE\`:
+
+~~~text
+00 df 14 0c 07 fe ff ff 00 28 03 00 00 d0 7c 02
+~~~
+
+Relevant fields decode to:
+
+~~~text
+start LBA    = 206848
+sector count = 41734144
+~~~
+
+Convert its start to a byte offset:
+
+~~~text
+206848 × 512
+= 105,906,176 bytes
+= 0x6500000
+~~~
+
+## Step 5 — Confirm the filesystem independently
+
+Partition type \`0x07\` is a partition-table type value. It is not by itself sufficient proof that the partition contains NTFS.
+
+Examine partition 2 as a filesystem:
+
+~~~bash
+fsstat -o 206848 cfreds_2015_data_leakage_pc.dd
+~~~
+
+The resulting filesystem metadata is coherent with NTFS, including a 512-byte sector size and 4096-byte cluster size.
+
+The important distinction is:
+
+~~~text
+MBR type 0x07
+    → partition-type indication
+
+coherent NTFS boot-sector and filesystem metadata
+    → filesystem confirmation
+~~~
+
+## Answer
+
+The PC image uses an MBR partition table with two \`0x07\` partitions:
+
+~~~text
+Partition 1
+  Start LBA:    2048
+  Sector count: 204800
+  Byte offset:  0x100000
+  Size:         100 MiB
+  Active:       yes
+
+Partition 2
+  Start LBA:    206848
+  Sector count: 41734144
+  Byte offset:  0x6500000
+  Size:         approximately 19.9 GiB
+~~~
+
+Partition 2 contains the main NTFS filesystem used for the subsequent Windows analysis.
+
+## What this establishes
+
+This establishes the disk's MBR partition geometry and the exact starting byte offsets required for later filesystem examination.
+
+## What this does not establish
+
+Partition geometry alone does not identify the installed Windows version, user activity, or the meaning of files stored inside the partitions. Those require filesystem and operating-system artifacts.

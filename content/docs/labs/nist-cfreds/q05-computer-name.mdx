@@ -1,0 +1,57 @@
+---
+title: Q05 — Computer Name
+description: Identify the Windows host name from the SYSTEM Registry hive.
+---
+
+## Question
+
+**What is the computer name?**
+
+## Why this matters
+
+A computer name is a basic system identifier. It helps correlate local artifacts with event logs, network records, user activity, and other evidence that refers to the host by name.
+
+## Evidence source
+
+The relevant SYSTEM hive path is:
+
+~~~text
+SYSTEM\ControlSet001\Control\ComputerName\ComputerName
+~~~
+
+## Step 1 — Examine the Registry key
+
+~~~bash
+hivexsh SYSTEM
+~~~
+
+Then:
+
+~~~text
+cd \ControlSet001\Control\ComputerName\ComputerName
+lsval
+~~~
+
+## Step 2 — Record the observed value
+
+The key contained:
+
+~~~text
+ComputerName = INFORMANT-PC
+~~~
+
+## Answer
+
+The computer name is:
+
+~~~text
+INFORMANT-PC
+~~~
+
+## What this establishes
+
+This Registry value establishes the configured computer name represented in the examined SYSTEM hive.
+
+## What this does not establish
+
+The computer name alone does not identify who was using the machine at a particular time. User attribution requires account and activity artifacts.

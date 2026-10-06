@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - feat/fumadocs-shadcn
+      - "feat/**"
   pull_request:
     branches:
       - main

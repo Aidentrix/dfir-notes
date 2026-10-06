@@ -1,0 +1,73 @@
+---
+title: Q07 — Last Logged-On User
+description: Determine which examined local account has the latest recorded successful SAM last-logon timestamp.
+---
+
+## Question
+
+**Who was the last user to log on to the PC?**
+
+## Why this matters
+
+The last logged-on account gives us a useful point in the system timeline and helps identify which user profile should receive closer examination.
+
+This conclusion should come from account evidence rather than from a filename or scenario assumption.
+
+## Evidence source
+
+Question 6 derived last-logon timestamps from the SAM account records:
+
+~~~text
+SAM\SAM\Domains\Account\Users\<RID>\F
+~~~
+
+The relevant field is the eight-byte FILETIME value at:
+
+~~~text
+F + 0x08..0x0F
+~~~
+
+## Step 1 — Compare the recorded last-logon values
+
+| Account | Last logon (UTC) |
+| --- | --- |
+| informant | 2015-03-25 14:45:59.180205 |
+| admin11 | 2015-03-22 15:57:02.419988 |
+| ITechTeam | Never |
+| temporary | 2015-03-22 15:55:57.259062 |
+
+## Step 2 — Identify the latest timestamp
+
+The latest recorded successful SAM last-logon value among the examined non-system accounts is:
+
+~~~text
+2015-03-25 14:45:59.180205 UTC
+~~~
+
+It belongs to:
+
+~~~text
+informant
+~~~
+
+## Answer
+
+The last logged-on local user identified from the SAM account records is:
+
+~~~text
+informant
+~~~
+
+with a recorded last-logon time of:
+
+~~~text
+2015-03-25 14:45:59.180205 UTC
+~~~
+
+## What this establishes
+
+Among the examined local account records, \`informant\` has the latest recorded successful SAM last-logon timestamp.
+
+## What this does not establish
+
+This timestamp alone does not prove every action performed after logon was performed by that person. Activity attribution still requires correlation with user and system artifacts.

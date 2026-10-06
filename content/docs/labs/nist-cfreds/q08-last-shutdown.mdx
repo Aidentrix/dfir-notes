@@ -1,0 +1,83 @@
+---
+title: Q08 — Last Recorded Shutdown
+description: Decode the SYSTEM hive ShutdownTime value as a Windows FILETIME timestamp.
+---
+
+## Question
+
+**When was the last recorded shutdown date and time?**
+
+## Why this matters
+
+Shutdown time is useful when bounding a forensic timeline. It can help establish when the recorded Windows session ended and can be correlated with logon, network, application, and filesystem activity.
+
+## Evidence source
+
+The relevant Registry value is:
+
+~~~text
+SYSTEM\ControlSet001\Control\Windows\ShutdownTime
+~~~
+
+## Step 1 — Retrieve the raw value
+
+The observed \`ShutdownTime\` bytes were:
+
+~~~text
+57 a9 48 b5 10 67 d0 01
+~~~
+
+This is an eight-byte binary value.
+
+## Step 2 — Identify the encoding
+
+\`ShutdownTime\` is a Windows FILETIME value.
+
+FILETIME is:
+
+~~~text
+64-bit integer
+little-endian
+100-nanosecond intervals
+epoch: 1601-01-01 00:00:00 UTC
+~~~
+
+The field definition determines how these bytes are decoded.
+
+## Step 3 — Decode independently
+
+A compact Python verification is:
+
+~~~python
+from datetime import datetime, timedelta, timezone
+
+raw = bytes.fromhex("57 a9 48 b5 10 67 d0 01")
+value = int.from_bytes(raw, "little")
+
+epoch = datetime(1601, 1, 1, tzinfo=timezone.utc)
+timestamp = epoch + timedelta(microseconds=value // 10)
+
+print(timestamp)
+~~~
+
+Result:
+
+~~~text
+2015-03-25 15:31:05.232008+00:00
+~~~
+
+## Answer
+
+The last recorded shutdown time is:
+
+~~~text
+2015-03-25 15:31:05.232008 UTC
+~~~
+
+## What this establishes
+
+The SYSTEM hive records this value as the last shutdown timestamp represented by \`ShutdownTime\`.
+
+## What this does not establish
+
+The value does not explain why the machine shut down or whether the shutdown was user-initiated, planned, or unexpected. Those questions require additional event and activity evidence.

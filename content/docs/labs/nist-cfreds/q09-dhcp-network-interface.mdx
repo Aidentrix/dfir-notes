@@ -1,0 +1,152 @@
+---
+title: Q09 — DHCP Network Interface
+description: Identify the DHCP-enabled interface, assigned network configuration, and lease timing from the SYSTEM Registry hive.
+---
+
+## Question
+
+**Explain the information of the network interface with an IP address assigned by DHCP.**
+
+## Why this matters
+
+Network configuration helps place the host in its operating environment and provides timestamps that can be correlated with the broader system timeline.
+
+The SYSTEM hive records TCP/IP parameters per network-interface GUID.
+
+## Evidence source
+
+The relevant Registry path is:
+
+~~~text
+SYSTEM\ControlSet001\Services\Tcpip\Parameters\Interfaces
+~~~
+
+## Step 1 — Enumerate network interfaces
+
+Using \`hivexsh\`:
+
+~~~bash
+hivexsh SYSTEM
+~~~
+
+Navigate to:
+
+~~~text
+\ControlSet001\services\Tcpip\Parameters\Interfaces
+~~~
+
+Two interface GUIDs were present:
+
+~~~text
+{846ee342-7039-11de-9d20-806e6f6e6963}
+{E2B9AEEC-B1F7-4778-A049-50D7F2DAB2DE}
+~~~
+
+The second interface contained the DHCP configuration values used for the answer.
+
+## Step 2 — Record the DHCP configuration
+
+Interface:
+
+~~~text
+{E2B9AEEC-B1F7-4778-A049-50D7F2DAB2DE}
+~~~
+
+Observed values:
+
+~~~text
+EnableDHCP          = 1
+DhcpIPAddress       = 10.11.11.129
+DhcpSubnetMask      = 255.255.255.0
+DhcpServer          = 10.11.11.254
+DhcpNameServer      = 10.11.11.2
+DhcpDefaultGateway  = 10.11.11.2
+DhcpDomain          = localdomain
+Lease               = 0x708
+LeaseObtainedTime   = 0x5512d216
+T1                  = 0x5512d59a
+T2                  = 0x5512d83d
+LeaseTerminatesTime = 0x5512d91e
+~~~
+
+\`EnableDHCP = 1\` establishes that DHCP was enabled for this interface.
+
+## Step 3 — Decode the lease duration
+
+~~~text
+0x708 = 1800 seconds = 30 minutes
+~~~
+
+## Step 4 — Identify the timestamp format
+
+These DHCP lease fields are four-byte Registry DWORD values representing **Unix epoch seconds**.
+
+They are not Windows FILETIME values.
+
+A deterministic conversion is:
+
+~~~python
+from datetime import datetime, timezone
+
+values = {
+    "LeaseObtainedTime": 0x5512D216,
+    "T1": 0x5512D59A,
+    "T2": 0x5512D83D,
+    "LeaseTerminatesTime": 0x5512D91E,
+}
+
+for name, value in values.items():
+    print(name, datetime.fromtimestamp(value, tz=timezone.utc))
+~~~
+
+## Step 5 — Validate the lease timing
+
+| Field | UTC |
+| --- | --- |
+| Lease obtained | 2015-03-25 15:19:50 |
+| T1 | 2015-03-25 15:34:50 |
+| T2 | 2015-03-25 15:46:05 |
+| Lease terminates | 2015-03-25 15:49:50 |
+
+The timestamps are internally coherent with the recorded 30-minute lease:
+
+~~~text
+lease obtained
+   ↓ +15 minutes
+T1
+   ↓
+T2
+   ↓
+lease terminates at +30 minutes
+~~~
+
+## Answer
+
+The DHCP-enabled interface is:
+
+~~~text
+{E2B9AEEC-B1F7-4778-A049-50D7F2DAB2DE}
+~~~
+
+Its recorded configuration is:
+
+| Property | Value |
+| --- | --- |
+| DHCP | Enabled |
+| IPv4 address | 10.11.11.129 |
+| Subnet mask | 255.255.255.0 |
+| DHCP server | 10.11.11.254 |
+| Default gateway | 10.11.11.2 |
+| DNS server | 10.11.11.2 |
+| Domain | localdomain |
+| Lease duration | 1800 seconds / 30 minutes |
+| Lease obtained | 2015-03-25 15:19:50 UTC |
+| Lease expiration | 2015-03-25 15:49:50 UTC |
+
+## What this establishes
+
+The SYSTEM hive establishes that this interface was configured for DHCP and records the assigned address, subnet, DHCP server, gateway, DNS server, domain, lease duration, and lease timing.
+
+## What this does not establish
+
+Registry configuration alone does not prove every network connection or remote communication performed during the lease. Those conclusions require network and application activity artifacts.

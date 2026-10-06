@@ -1,0 +1,100 @@
+---
+title: Q04 — Time Zone
+description: Determine the configured Windows time zone and effective UTC offset from the SYSTEM Registry hive.
+---
+
+## Question
+
+**What is the time-zone setting?**
+
+## Why this matters
+
+Timeline reconstruction depends on knowing how the system represented local time.
+
+The forensic timestamps themselves should normally be preserved in their native or normalized form, but the configured time zone is essential when interpreting user-visible local times and correlating events.
+
+## Evidence source
+
+The SYSTEM hive was extracted from:
+
+~~~text
+C:\Windows\System32\config\SYSTEM
+~~~
+
+The active control set for this image was established as \`ControlSet001\`.
+
+The relevant Registry path is:
+
+~~~text
+SYSTEM\ControlSet001\Control\TimeZoneInformation
+~~~
+
+## Step 1 — Examine the key
+
+~~~bash
+hivexsh SYSTEM
+~~~
+
+Then:
+
+~~~text
+cd \ControlSet001\Control\TimeZoneInformation
+lsval
+~~~
+
+## Step 2 — Record the values
+
+Observed values:
+
+~~~text
+Bias                        = 0x12c
+DaylightBias                = 0xffffffc4
+DaylightName                = @tzres.dll,-111
+StandardBias                = 0
+StandardName                = @tzres.dll,-112
+TimeZoneKeyName             = Eastern Standard Time
+DynamicDaylightTimeDisabled = 0
+ActiveTimeBias              = 0xf0
+~~~
+
+## Step 3 — Decode the bias values
+
+\`0x12c\` is 300 decimal minutes.
+
+\`0xf0\` is 240 decimal minutes.
+
+Windows represents the bias using:
+
+~~~text
+UTC = local time + bias
+~~~
+
+Therefore an active bias of 240 minutes means:
+
+~~~text
+local time = UTC - 4 hours
+~~~
+
+\`DynamicDaylightTimeDisabled = 0\` indicates that dynamic daylight-saving handling was not disabled.
+
+## Answer
+
+The configured time zone is:
+
+~~~text
+Eastern Standard Time
+~~~
+
+At the time represented by the active bias, the effective offset was:
+
+~~~text
+UTC-4
+~~~
+
+## What this establishes
+
+The Registry establishes the configured Windows time-zone key and the effective bias represented in the system state.
+
+## What this does not establish
+
+The time-zone setting does not alter the underlying evidence timestamps. It provides context for interpreting local-time presentation and correlation.
