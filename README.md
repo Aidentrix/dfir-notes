@@ -12,6 +12,8 @@ This repository is the public, curated layer of my DFIR study work. It is intent
 - Tailwind CSS
 - GitHub Pages
 
+The documentation UI uses Fumadocs' documentation shell with shadcn-style design tokens, including a left navigation tree, page table of contents, search, and light/dark themes.
+
 ## Local development
 
 ~~~bash
