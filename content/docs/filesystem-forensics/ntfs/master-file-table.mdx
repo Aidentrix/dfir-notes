@@ -1,0 +1,23 @@
+---
+title: Master File Table
+description: Understand the MFT as the central NTFS record set for files and directories.
+---
+
+The Master File Table is the central NTFS metadata file. NTFS allocates MFT records for files and directories, with a fixed header followed by attributes.
+
+The MFT starting cluster and record-size encoding come from the NTFS boot sector rather than from a global assumption.
+
+## Record recognition
+
+A normal MFT file record begins with:
+
+~~~text
+46 49 4c 45
+ F  I  L  E
+~~~
+
+Those bytes are useful when they occur at an expected record boundary, but the four-byte pattern alone does not establish a valid MFT record. The surrounding header fields, record geometry, and filesystem context should also be coherent.
+
+In the CFReDS work, the `FILE` bytes were observed at the calculated MFT location, supporting the boot-sector-derived location.
+
+See [MFT Record Structure and Fixups](/filesystem-forensics/ntfs/mft-record-structure-fixups).

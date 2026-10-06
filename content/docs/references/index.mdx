@@ -1,7 +1,14 @@
 ---
 title: References
-description: Public datasets, documentation, and reference discipline.
+description: Primary source material, public datasets, tool documentation, and reference discipline.
 ---
+
+## Primary learning sources
+
+- Brian Carrier, *File System Forensic Analysis*, Addison-Wesley, 2005.
+- Project Chronos source-reviewed study notes for BCS-00 Number Systems and BCS-01 PC Introduction.
+
+Project Chronos modules whose source remains **PENDING** are not treated as completed source authority.
 
 ## Public training material
 
@@ -15,9 +22,11 @@ description: Public datasets, documentation, and reference discipline.
 
 ## Reference discipline
 
-References establish structure definitions, field semantics, and tool behavior. Observed evidence values are kept distinct from reference documentation:
-
 ~~~text
-structure definition -> how to interpret
-evidence bytes       -> actual value
+documented structure -> how a field is interpreted
+observed bytes       -> what the evidence actually contains
+tool output          -> one parser's interpretation
+validation           -> comparison with an independent observation
 ~~~
+
+When offsets are published, the page names the base address space so image-absolute, volume-relative, record-relative, and attribute-relative coordinates are not conflated.

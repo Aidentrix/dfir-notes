@@ -1,0 +1,27 @@
+---
+title: Non-resident Data and Data Runs
+description: Introduce VCN, LCN, and runlists without turning the page into a complete NTFS specification.
+---
+
+A non-resident NTFS attribute stores content outside the MFT record.
+
+## VCN and LCN
+
+- **VCN — Virtual Cluster Number:** logical cluster position within the attribute's content.
+- **LCN — Logical Cluster Number:** cluster address in the filesystem.
+
+A runlist maps VCN ranges to LCN ranges.
+
+~~~text
+attribute logical content (VCN)
+        ↓
+runlist mapping
+        ↓
+filesystem clusters (LCN)
+~~~
+
+The non-resident header contains starting and ending VCN values and an offset to the runlist. That runlist offset is relative to the beginning of the attribute.
+
+Carrier's runlist encoding is variable-length; later run offsets are signed values relative to the previous run.
+
+For this stage, the key concept is that an MFT record can describe content that physically lives elsewhere in the NTFS volume.

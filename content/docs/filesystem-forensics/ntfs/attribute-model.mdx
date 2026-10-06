@@ -1,0 +1,45 @@
+---
+title: NTFS Attribute Model
+description: Decode the common NTFS attribute header and distinguish resident from non-resident content.
+---
+
+An MFT record is primarily a container for attributes. The offsets below are measured from the **beginning of the NTFS attribute header**.
+
+## Common first 16 bytes
+
+| Attribute-relative offset | Length | Field |
+| --- | ---: | --- |
+| `0x00` | 4 bytes | Attribute type identifier |
+| `0x04` | 4 bytes | Total attribute length |
+| `0x08` | 1 byte | Non-resident flag |
+| `0x09` | 1 byte | Name length |
+| `0x0A` | 2 bytes | Name offset |
+| `0x0C` | 2 bytes | Flags |
+| `0x0E` | 2 bytes | Attribute identifier |
+
+The name offset is relative to the start of the attribute.
+
+## Resident attributes
+
+Carrier gives these additional resident fields:
+
+| Attribute-relative offset | Length | Field |
+| --- | ---: | --- |
+| `0x10` | 4 bytes | Content length |
+| `0x14` | 2 bytes | Content offset |
+
+The content offset is relative to the start of the attribute.
+
+**Resident** means the attribute content is stored inside the MFT record with the header.
+
+## Non-resident attributes
+
+A non-resident attribute keeps its header in the MFT record but stores content in clusters elsewhere in the filesystem, located through run information.
+
+Resident versus non-resident is a storage-layout distinction. It does not mean local versus network-based.
+
+Core attributes introduced here are:
+
+- [`$STANDARD_INFORMATION`](/filesystem-forensics/ntfs/core-attributes/standard-information)
+- [`$FILE_NAME`](/filesystem-forensics/ntfs/core-attributes/file-name)
+- [`$DATA`](/filesystem-forensics/ntfs/core-attributes/data)

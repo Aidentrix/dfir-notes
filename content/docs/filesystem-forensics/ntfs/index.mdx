@@ -1,0 +1,29 @@
+---
+title: NTFS Overview
+description: Orient NTFS analysis around the volume boot sector, the MFT, and the attribute model.
+---
+
+NTFS centers file and directory metadata on the **Master File Table (MFT)**.
+
+~~~text
+NTFS volume start
+  ↓
+NTFS boot sector
+  ↓
+sector and cluster geometry
+  ↓
+starting cluster of $MFT
+  ↓
+MFT records
+  ↓
+attributes
+  ↓
+resident content or non-resident data runs
+~~~
+
+Address spaces are named explicitly throughout this section:
+
+- boot-sector offsets are relative to the start of the NTFS volume boot sector;
+- MFT-record offsets are relative to one MFT record;
+- attribute offsets are relative to that attribute;
+- case-specific absolute offsets are relative to the beginning of the evidence image.

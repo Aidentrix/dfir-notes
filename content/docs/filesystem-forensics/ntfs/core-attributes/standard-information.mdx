@@ -1,0 +1,10 @@
+---
+title: $STANDARD_INFORMATION
+description: Core NTFS metadata, including the timestamp set commonly exposed by Windows file properties.
+---
+
+`$STANDARD_INFORMATION` has the default type identifier `0x10` and is resident in the NTFS versions described by Carrier.
+
+It contains core file or directory metadata, including four NTFS timestamp values and flags. The timestamp values are stored as 64-bit counts of 100-nanosecond intervals since 1601-01-01 UTC.
+
+The values are metadata rather than file content. Operating-system behavior determines when they are updated, so important temporal conclusions should be corroborated when practical.

@@ -1,0 +1,67 @@
+---
+title: NTFS Boot Sector
+description: Decode the NTFS volume boot sector and use its geometry to locate the MFT.
+---
+
+The NTFS boot sector is in sector 0 of the NTFS filesystem. The offsets on this page are measured from the **beginning of the NTFS volume boot sector**, not from the beginning of the whole evidence image unless the volume begins there.
+
+Carrier's NTFS boot-sector structure includes these fields used in this journey:
+
+| Boot-sector-relative offset | Length | Field | Meaning |
+| --- | ---: | --- | --- |
+| `0x0B` | 2 bytes | Bytes per sector | Logical sector size used by the filesystem |
+| `0x0D` | 1 byte | Sectors per cluster | Cluster geometry |
+| `0x28` | 8 bytes | Total sectors | Total sectors in the filesystem |
+| `0x30` | 8 bytes | Starting cluster of `$MFT` | Volume-relative cluster address |
+| `0x38` | 8 bytes | Starting cluster of `$MFTMirr` | Volume-relative cluster address |
+| `0x40` | 1 byte | File-record size encoding | Encodes MFT-record size |
+| `0x44` | 1 byte | Index-record size encoding | Encodes index-record size |
+| `0x48` | 8 bytes | Volume serial number | Filesystem serial value |
+| `0x1FE` | 2 bytes | Signature | Stored bytes `55 AA` |
+
+## MFT-record size encoding
+
+The byte at `0x40` is not always a literal record-size value.
+
+Carrier describes the signed encoding as:
+
+- a positive value represents a number of clusters;
+- a negative value `-n` represents `2^n` bytes.
+
+Example:
+
+~~~text
+-10 → 2^10 = 1024 bytes
+~~~
+
+## CFReDS application
+
+Recorded observations for the CFReDS PC image are:
+
+~~~text
+sector size:        512 bytes
+cluster size:       4096 bytes
+MFT record size:    1024 bytes
+root MFT record:    5
+$MFT cluster:       786432
+$MFTMirr cluster:   2
+~~~
+
+Partition 2 begins at image-absolute offset:
+
+~~~text
+0x6500000
+~~~
+
+Convert the volume-relative MFT cluster to an image-absolute byte offset:
+
+~~~text
+partition start
++ ($MFT cluster × cluster size)
+
+0x6500000
++ (786432 × 4096)
+= 0xC6500000
+~~~
+
+The calculation predicts where the MFT should begin. The next validation step is to inspect that location for the expected MFT-record structure.
