@@ -1,20 +1,77 @@
 ---
-title: NIST CFReDS Data Leakage Case
-description: Evidence-first analysis of the public CFReDS Data Leakage training image.
+title: NIST CFReDS — Data Leakage Case
+description: A question-by-question, evidence-first investigation of the public NIST CFReDS Data Leakage Case.
 ---
 
-This lab uses the public NIST CFReDS Data Leakage Case dataset as a forensic training source.
+## What is CFReDS?
 
-## Purpose
+The **Computer Forensic Reference Data Sets (CFReDS)** project provides documented sets of simulated digital evidence for forensic examination, training, tool testing, and proficiency work.
 
-The objective is to derive answers independently from the image, then trace each conclusion back to the artifact that supports it.
+This lab uses the public **NIST CFReDS Data Leakage Case**.
 
-## Working approach
+- [NIST CFReDS project](https://www.nist.gov/itl/csd/secure-systems-and-applications/computer-forensics-tool-testing-program-cftt/cfreds)
+- [Data Leakage Case](https://cfreds-archive.nist.gov/data_leakage_case/data-leakage-case.html)
 
-The analysis uses tools such as Sleuth Kit, xxd, hivexsh, hivexget, and small Python snippets for deterministic decoding.
+## The case story
 
-> **Recognize enough to orient. Validate enough to trust the interpretation. Look up the exact structure when precision matters.**
+The scenario follows **Iaman Informant**, a technology-development manager who is suspected of agreeing to leak sensitive company information to an employee of a rival company.
 
-## Current progression
+According to the scenario, the suspected leakage plan used ordinary-looking e-mail communication, personal cloud storage for sample data, and removable media for a larger transfer. A USB device and CD were detected at the company's security checkpoint and the devices were transferred for forensic examination.
 
-The study has covered MBR partition validation, NTFS boot-sector and MFT location reasoning, Windows Registry hive extraction, operating system and timezone artifacts, computer name, local user accounts, SAM metadata, shutdown time, and DHCP configuration.
+The investigation objective is broader than finding a single file. We need to reconstruct the system, user activity, storage activity, network activity, and ultimately the evidence of data leakage.
+
+## Evidence used in this learning path
+
+The current learning path begins with the PC DD image:
+
+~~~text
+cfreds_2015_data_leakage_pc.dd
+~~~
+
+The image is approximately 20 GiB. NIST's dataset metadata describes the PC DD image as a DD-format image converted from the original virtual-disk source.
+
+The lab treats the downloaded image as evidence to be independently examined. Dataset descriptions and answer material are reference material, not substitutes for deriving the result from the image.
+
+## Investigation method
+
+Each question follows the same evidence chain:
+
+~~~text
+Question
+   ↓
+Why the fact matters
+   ↓
+Evidence source
+   ↓
+How the artifact was located
+   ↓
+Tool-assisted examination
+   ↓
+Observed raw value or bytes
+   ↓
+Field structure / encoding
+   ↓
+Independent validation
+   ↓
+Answer
+   ↓
+What the evidence establishes
+   ↓
+What it does not establish
+~~~
+
+The goal is not to memorize a forensic tool's output. The goal is to understand where that output came from and how to verify it.
+
+## Current question path
+
+1. [Q01 — Evidence Integrity and Hashing](./q01-evidence-integrity)
+2. [Q02 — Partition Layout](./q02-partition-layout)
+3. [Q03 — Installed Operating System](./q03-installed-operating-system)
+4. [Q04 — Time Zone](./q04-time-zone)
+5. [Q05 — Computer Name](./q05-computer-name)
+6. [Q06 — User Accounts](./q06-user-accounts)
+7. [Q07 — Last Logged-On User](./q07-last-logged-on-user)
+8. [Q08 — Last Recorded Shutdown](./q08-last-shutdown)
+9. [Q09 — DHCP Network Interface](./q09-dhcp-network-interface)
+
+These first questions establish the machine before later questions move into applications, execution history, browser activity, e-mail, removable media, cloud services, deleted data, and timeline reconstruction.

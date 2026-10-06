@@ -1,0 +1,101 @@
+---
+title: Q03 — Installed Operating System
+description: Derive installed Windows build information from the SOFTWARE Registry hive.
+---
+
+## Question
+
+**Explain the installed operating-system information in detail.**
+
+## Why this matters
+
+The operating-system version determines which forensic artifacts, Registry paths, timestamp behaviors, and application traces are likely to exist.
+
+Filesystem metadata alone cannot reliably answer which Windows release was installed. For that, the Windows Registry provides stronger operating-system-specific evidence.
+
+## Evidence source
+
+The SOFTWARE hive was extracted from the Windows filesystem:
+
+~~~text
+C:\Windows\System32\config\SOFTWARE
+~~~
+
+The extracted hive was validated by its Registry hive signature:
+
+~~~text
+72 65 67 66
+r  e  g  f
+~~~
+
+## Step 1 — Navigate to the Windows version key
+
+Open the hive:
+
+~~~bash
+hivexsh SOFTWARE
+~~~
+
+Then navigate to:
+
+~~~text
+\Microsoft\Windows NT\CurrentVersion
+~~~
+
+In \`hivexsh\`:
+
+~~~text
+cd \Microsoft\Windows NT\CurrentVersion
+lsval
+~~~
+
+## Step 2 — Record the observed values
+
+The lab observed:
+
+~~~text
+CurrentBuildNumber = 7601
+CSDVersion         = Service Pack 1
+BuildLab           = 7601.win7sp1_gdr.130828-1532
+BuildLabEx         = 7601.18247.amd64fre.win7sp1_gdr.130828-1532
+BuildGUID          = cef1a179-8b62-4cee-a99f-1c96c94a8e4d
+CSDBuildNumber     = 1130
+PathName           = C:\Windows
+~~~
+
+## Step 3 — Interpret the evidence
+
+The values support the following:
+
+~~~text
+Build family:       7601
+Service pack:       Service Pack 1
+Architecture clue:  amd64 / x64
+Windows path:       C:\Windows
+~~~
+
+The build strings contain \`win7sp1\`, linking build 7601 to the Windows 7 Service Pack 1 family.
+
+NIST's scenario metadata identifies the target system as Windows 7 Ultimate SP1. The independent Registry evidence recorded in this lab supports the Windows 7 SP1 x64 family; values such as \`ProductName\`, registered owner, and installation date should be recorded directly before making more specific independent claims from the hive.
+
+## Answer
+
+The examined PC is a Windows 7 Service Pack 1 system in the amd64/x64 build family, with Windows installed under:
+
+~~~text
+C:\Windows
+~~~
+
+The observed build number is:
+
+~~~text
+7601
+~~~
+
+## What this establishes
+
+The SOFTWARE hive provides operating-system build, service-pack, architecture-family, and Windows-path evidence tied to the installed system.
+
+## What this does not establish
+
+The currently recorded values do not independently establish every detail requested by the original question, such as registered owner or installation date. Those values should be derived from their own Registry fields rather than inferred from scenario metadata.

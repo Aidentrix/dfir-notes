@@ -1,4 +1,15 @@
 {
-  "title": "NIST CFReDS",
-  "pages": ["index","disk-and-partitions","ntfs-and-mft","windows-registry","user-accounts","network-configuration","timeline"]
+  "title": "NIST CFReDS — Data Leakage Case",
+  "pages": [
+    "index",
+    "q01-evidence-integrity",
+    "q02-partition-layout",
+    "q03-installed-operating-system",
+    "q04-time-zone",
+    "q05-computer-name",
+    "q06-user-accounts",
+    "q07-last-logged-on-user",
+    "q08-last-shutdown",
+    "q09-dhcp-network-interface"
+  ]
 }

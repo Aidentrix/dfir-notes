@@ -1,0 +1,140 @@
+---
+title: Q06 — User Accounts
+description: Enumerate non-system local accounts and derive RID, logon count, failed-logon count, and last-logon time from the SAM hive.
+---
+
+## Question
+
+**List the operating-system accounts except the built-in/system accounts, including account name, login count, and last logon information.**
+
+## Why this matters
+
+Before attributing activity to a user, we need to know which local accounts existed and how Windows represented them internally.
+
+In the SAM, account names and account records are connected through a **Relative Identifier (RID)**.
+
+## Evidence source
+
+The SAM hive was extracted from:
+
+~~~text
+C:\Windows\System32\config\SAM
+~~~
+
+The account structures are under:
+
+~~~text
+SAM\SAM\Domains\Account\Users
+~~~
+
+## Step 1 — Enumerate account names
+
+Open the hive:
+
+~~~bash
+hivexsh SAM
+~~~
+
+Navigate to:
+
+~~~text
+\SAM\Domains\Account\Users\Names
+~~~
+
+The non-built-in account names observed were:
+
+~~~text
+informant
+admin11
+ITechTeam
+temporary
+~~~
+
+## Step 2 — Map names to RIDs
+
+The \`Names\<account>\` entries encode the RID associated with each account.
+
+The observed mappings were:
+
+| Account | RID decimal | RID key |
+| --- | ---: | --- |
+| informant | 1000 | 000003E8 |
+| admin11 | 1001 | 000003E9 |
+| ITechTeam | 1002 | 000003EA |
+| temporary | 1003 | 000003EB |
+
+A simple deterministic conversion verifies the hexadecimal RID key names:
+
+~~~python
+for n in (1000, 1001, 1002, 1003):
+    print(f"{n} decimal -> 0x{n:X} -> {n:08X}")
+~~~
+
+The result is:
+
+~~~text
+1000 -> 000003E8
+1001 -> 000003E9
+1002 -> 000003EA
+1003 -> 000003EB
+~~~
+
+## Step 3 — Read each account record
+
+Each RID key contains an \`F\` value with fixed binary fields used for account metadata.
+
+Relevant offsets for this analysis are:
+
+~~~text
++0x08..0x0F  last logon FILETIME
++0x30..0x33  RID, little-endian
++0x40..0x41  failed-logon count
++0x42..0x43  logon count
+~~~
+
+Retrieve the binary value with \`hivexget\`:
+
+~~~bash
+hivexget SAM '\SAM\Domains\Account\Users\000003E8' F
+~~~
+
+The same process is repeated for each RID.
+
+## Step 4 — Decode the fields
+
+The last-logon field is an eight-byte Windows FILETIME value.
+
+A deterministic decoder can be written as:
+
+~~~python
+from datetime import datetime, timedelta, timezone
+
+FILETIME_EPOCH = datetime(1601, 1, 1, tzinfo=timezone.utc)
+
+def filetime(data: bytes):
+    value = int.from_bytes(data, "little")
+    if value == 0:
+        return None
+    return FILETIME_EPOCH + timedelta(microseconds=value // 10)
+~~~
+
+Python performs the numeric conversion. The SAM structure is what tells us that bytes \`0x08..0x0F\` represent the last-logon field.
+
+## Answer
+
+| Account | RID | Last logon (UTC) | Logons | Failed |
+| --- | ---: | --- | ---: | ---: |
+| informant | 1000 | 2015-03-25 14:45:59.180205 | 10 | 0 |
+| admin11 | 1001 | 2015-03-22 15:57:02.419988 | 2 | 0 |
+| ITechTeam | 1002 | Never | 0 | 1 |
+| temporary | 1003 | 2015-03-22 15:55:57.259062 | 1 | 1 |
+
+The built-in Administrator and Guest accounts are excluded from the requested result.
+
+## What this establishes
+
+The SAM establishes the existence of these local accounts, their RIDs, and the recorded account metadata decoded from each account's \`F\` value.
+
+## What this does not establish
+
+An account's existence or logon count does not by itself prove which human performed a particular action. Attribution requires correlation with activity artifacts.
