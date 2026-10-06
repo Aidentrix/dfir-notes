@@ -1,0 +1,10 @@
+---
+title: Allocation and Unallocated Data
+description: Treat allocation state as a filesystem interpretation with consequences for recovery.
+---
+
+**Allocated** means the filesystem currently marks a unit or record as in use. **Unallocated** means the filesystem currently marks it as available for reuse.
+
+Unallocated does not mean empty. Previous content can remain until overwritten.
+
+Allocation state is also distinct from content identity. A deleted metadata record can retain an address whose data unit has since been reallocated. Record both allocation state and the evidence used to infer ownership of recovered bytes.

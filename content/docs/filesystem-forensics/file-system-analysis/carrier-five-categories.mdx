@@ -1,0 +1,16 @@
+---
+title: Carrier's Five Data Categories
+description: Keep filesystem layout, content, metadata, names, and application features distinct.
+---
+
+| Category | Role |
+| --- | --- |
+| File System Category | General information that describes this filesystem instance and helps locate other structures. |
+| Content Category | Data units used to store file and directory content. |
+| Metadata Category | Data that describe files or directories, including sizes, content locations, times, and access-related information. |
+| File Name Category | Data that associate human-usable names with metadata records. |
+| Application Category | Additional filesystem features, such as journaling or quota information. |
+
+A file name does not have to be stored in the same structure as the file's descriptive metadata, and file content is distinct from both.
+
+A forensic tool can combine these categories into one convenient view. The examiner should still know which underlying category supports each displayed result.

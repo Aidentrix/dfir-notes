@@ -1,0 +1,43 @@
+---
+title: Offsets and Addressing
+description: Keep relative offsets, absolute evidence offsets, sectors, LBAs, and volume-relative addresses distinct.
+---
+
+An offset is meaningful only when its base is known.
+
+| Address space | Offset zero means |
+| --- | --- |
+| Evidence image | Beginning of the image |
+| MBR | Beginning of disk / LBA 0 |
+| MBR partition entry | Beginning of that 16-byte entry |
+| NTFS boot sector | Beginning of the NTFS volume boot sector |
+| MFT record | Beginning of that individual MFT record |
+| NTFS attribute | Beginning of that attribute header |
+
+A bare value such as `0x30` is ambiguous until the address space is named.
+
+## Sectors and LBA
+
+LBA is a sector address, not a byte address. Once the logical sector size has been established:
+
+~~~text
+absolute byte offset = LBA × logical sector size
+~~~
+
+Do not assume 512-byte logical sectors globally. In CFReDS Q02, `fdisk` reports 512 bytes for that image:
+
+~~~text
+2048 × 512 = 1,048,576 = 0x100000
+~~~
+
+## Volume-relative addressing
+
+Filesystem structures often use addresses relative to the beginning of a volume.
+
+~~~text
+image-absolute offset
+= partition start
++ (volume-relative cluster × cluster size)
+~~~
+
+The base and the unit must both be established before the arithmetic is meaningful.

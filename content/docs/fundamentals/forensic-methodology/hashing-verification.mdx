@@ -1,0 +1,22 @@
+---
+title: Hashing and Verification
+description: Compare evidence byte streams without confusing a digest match with a case conclusion.
+---
+
+A cryptographic hash maps an input byte stream to a fixed-size digest. A forensic verification workflow compares a digest calculated from the evidence being examined with a digest recorded for the verification object.
+
+~~~text
+evidence bytes
+  ↓
+hash function
+  ↓
+calculated digest
+  ↓
+compare with recorded digest
+  ↓
+match or mismatch
+~~~
+
+The CFReDS training lab calculates MD5 and SHA-1 because those are the verification values used by the exercise. A mismatch is a stop condition until the discrepancy is explained.
+
+A hash match does not identify partitions, users, activity, or filesystem contents.

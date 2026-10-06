@@ -1,38 +1,31 @@
 ---
 title: Fundamentals
-description: Byte-level concepts used throughout the DFIR notes.
+description: Reusable DFIR concepts that should be understood before case-specific interpretation.
 ---
 
-The foundation of this journey is learning how digital evidence is represented before relying on higher-level parsers.
-
-## Offsets and byte ranges
-
-An offset is a location relative to the start of the object currently being examined. Offset 0x00 means the beginning of that object; it does not mean the byte value itself is zero.
-
-Hex viewers commonly display 16 bytes per row, but display rows are only a presentation choice. Filesystem structures are defined by their own field boundaries.
-
-## Hexadecimal representation
-
-A hex dump is a representation of bytes, not a separate form of evidence.
+These pages contain concepts reused across investigations. Lab pages apply them to evidence rather than redefining them.
 
 ~~~text
-46 49 4c 45
+artifact
+  ↓
+documented structure
+  ↓
+raw evidence
+  ↓
+interpretation
+  ↓
+independent validation
+  ↓
+conclusion
 ~~~
 
-This is the ASCII string FILE. In NTFS, that signature is used at the beginning of an MFT file record.
+A forensic parser is interpretation machinery. Its output can be useful, but the parser is not the underlying evidence.
 
-## Endianness
+## Learning path
 
-Little endian applies to multi-byte numeric fields that are defined as little endian. It does not mean every byte sequence should be reversed.
+- [Forensic Methodology](/fundamentals/forensic-methodology)
+- [Data Representation](/fundamentals/data-representation)
+- [Offsets and Addressing](/fundamentals/offsets-addressing)
+- [Timestamp Encodings](/fundamentals/timestamp-encodings)
 
-> Identify the field first, then apply the field's encoding rules.
-
-## Deterministic conversion
-
-For repetitive numeric conversion, Python is preferable to doing arithmetic manually:
-
-~~~bash
-python3 -c 'print(int("32800", 16))'
-~~~
-
-Python performs the conversion; the forensic artifact and its documented structure provide the meaning.
+The filesystem section then applies these ideas to partition tables, boot sectors, file records, and attributes.

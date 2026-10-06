@@ -1,0 +1,28 @@
+---
+title: Volume and Partition Concepts
+description: Distinguish disk-relative, partition-relative, and filesystem-relative address spaces.
+---
+
+A partition is a bounded region described by a partitioning structure. A volume is the addressable storage region presented for use.
+
+For basic MBR/GPT training images:
+
+~~~text
+disk-relative address
+≠ partition-relative address
+≠ filesystem-relative address
+~~~
+
+For an MBR partition entry:
+
+~~~text
+starting LBA = address of first sector
+sector count = quantity of sectors
+final sector = starting LBA + sector count - 1
+~~~
+
+Once the logical sector size is known:
+
+~~~text
+partition byte offset = starting LBA × logical sector size
+~~~

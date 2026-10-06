@@ -1,0 +1,16 @@
+---
+title: Preservation and Integrity
+description: Protect the evidence object and keep later analysis distinguishable from the original.
+---
+
+Preservation aims to reduce avoidable modification of potential evidence.
+
+For storage analysis, useful principles include retaining originals, analyzing working copies when possible, preventing writes to original media, hashing acquired data, and documenting operations that can change device or evidence state.
+
+## Integrity is narrower than truth
+
+Integrity verification asks whether the examined byte stream matches the byte stream represented by a recorded verification value.
+
+A matching digest supports byte-for-byte consistency with that verification object. It does not by itself prove the acquisition captured every addressable area, that the source device was trustworthy, or that internal filesystem metadata is true.
+
+That distinction is used directly in [CFReDS Q01](/labs/nist-cfreds/q01-evidence-integrity).

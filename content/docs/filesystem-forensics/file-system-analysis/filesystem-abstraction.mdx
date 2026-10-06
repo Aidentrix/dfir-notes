@@ -1,0 +1,19 @@
+---
+title: Filesystem Abstraction
+description: Reason from filesystem structures instead of treating a displayed file path as the whole artifact.
+---
+
+A filesystem creates abstractions over storage so software can refer to named files and directories instead of raw sectors or clusters.
+
+Useful forensic questions include:
+
+~~~text
+Where is the filesystem?
+Where are its data units?
+Which metadata record describes this object?
+Which name points to that record?
+Where is the object's content?
+Which application-level structures add behavior such as journaling?
+~~~
+
+A path shown by a forensic tool can combine information from several structures. The displayed path is an interpretation assembled from those structures, not necessarily one contiguous on-disk object.

@@ -1,0 +1,22 @@
+---
+title: Validation and Corroboration
+description: Cross-check important interpretations against independent representations or sources.
+---
+
+Carrier's correlation principle is useful at both the investigation level and the structure-decoding level.
+
+~~~text
+tool interpretation
+        ↓
+raw-byte inspection
+        ↓
+documented field layout
+        ↓
+manual or deterministic decoding
+        ↓
+comparison
+~~~
+
+Examples include comparing an MBR starting-LBA field with `fdisk`, computing a partition offset from the observed sector size, and using `fsstat` instead of treating partition type `0x07` as proof of NTFS.
+
+When sources disagree, preserve the disagreement and investigate it rather than choosing the more convenient value.

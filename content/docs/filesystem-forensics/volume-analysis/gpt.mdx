@@ -1,0 +1,34 @@
+---
+title: GUID Partition Table (GPT)
+description: Recognize the GPT layer without transferring MBR assumptions into it.
+---
+
+GPT is a different partitioning model from DOS/MBR.
+
+~~~text
+LBA 0   protective MBR
+LBA 1   primary GPT header
+...     partition-entry array at the LBA named by the header
+...     partition data
+...     backup partition-entry array
+last    backup GPT header
+~~~
+
+The protective MBR commonly uses partition type `0xEE`. The primary GPT header uses the ASCII signature:
+
+~~~text
+45 46 49 20 50 41 52 54
+ E  F  I     P  A  R  T
+~~~
+
+Correlating a protective MBR with a coherent GPT header is stronger than relying on either marker alone.
+
+GPT partition entries use starting and ending LBAs:
+
+~~~text
+sector count = ending LBA - starting LBA + 1
+~~~
+
+Do not apply the MBR active-partition flag model to GPT/UEFI boot selection.
+
+This page remains conceptual until a GPT evidence image is examined in a later lab.

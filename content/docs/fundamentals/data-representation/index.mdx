@@ -1,0 +1,40 @@
+---
+title: Data Representation
+description: Bits, bytes, hexadecimal, ASCII, multi-byte integers, and byte order.
+---
+
+Digital evidence is stored as bytes. Binary, hexadecimal, decimal, and text views are different representations of underlying values.
+
+One hexadecimal digit represents four bits; two hexadecimal digits represent one byte.
+
+~~~text
+binary      01001000
+hex         48
+decimal     72
+ASCII       H
+~~~
+
+A hex dump does not transform evidence. It presents the same bytes in a compact numeric form.
+
+## ASCII
+
+~~~text
+46 49 4c 45
+ F  I  L  E
+~~~
+
+Those bytes spell `FILE`. In NTFS they are significant when observed in the signature field at the beginning of an MFT record.
+
+## Multi-byte integers and little endian
+
+A multi-byte field has a location, width, and encoding. Identify all three before conversion.
+
+For a field defined as a 4-byte little-endian integer:
+
+~~~text
+00 08 00 00
+→ 0x00000800
+→ 2048
+~~~
+
+Do not reverse arbitrary byte sequences merely because a host machine is little endian. The structure definition determines the field's byte order.
