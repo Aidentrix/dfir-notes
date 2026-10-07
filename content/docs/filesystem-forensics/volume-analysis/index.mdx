@@ -1,0 +1,22 @@
+---
+title: Volume Analysis
+description: Locate and interpret structures that divide or assemble storage into volumes.
+---
+
+Volume analysis asks where partitions or volumes begin, how large they are, and which image-absolute offsets should be used for later filesystem analysis.
+
+Carrier treats this layer separately from file system analysis.
+
+~~~text
+disk image
+  ↓
+partitioning structure
+  ↓
+partition start address
+  ↓
+volume
+  ↓
+filesystem structure inside the volume
+~~~
+
+A partition type can suggest expected contents, but it does not replace filesystem-level validation.

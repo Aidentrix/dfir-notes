@@ -65,7 +65,7 @@ Each command reads the full evidence image and produces a digest for that exact 
 
 ## Step 3 — Compare the values
 
-The calculated values should be compared with the acquisition or verification hashes associated with the evidence set.
+The calculated values were compared with the acquisition or verification hashes associated with the evidence set. Both values matched.
 
 The decision point is:
 
@@ -87,12 +87,19 @@ If a value does not match, the correct response is not to silently continue. The
 
 The PC DD image is the evidence object used for the remainder of this learning path.
 
-The final MD5 and SHA-1 strings will be added here from the locally calculated verification record rather than copied from an answer key.
+~~~text
+MD5:         a49d1254c873808c58e6f1bcd60b5bde
+SHA-1:       afe5c9ab487bd47a8a9856b1371c2384d44fd785
+
+Verification: PASS
+~~~
+
+Both digests were calculated directly from the local `cfreds_2015_data_leakage_pc.dd` image and matched the recorded source/acquisition verification values.
 
 ## What this establishes
 
-Hash verification establishes that the exact byte stream being examined matches the expected evidence image.
+Hash verification establishes that the examined byte stream matches the byte stream represented by the recorded verification object.
 
 ## What this does not establish
 
-A matching hash does not identify partitions, filesystems, users, or activity. Those conclusions begin only after integrity verification has passed.
+A matching hash does not establish acquisition completeness, partition structure, filesystem type or contents, the installed operating system, users, activity, or attribution. Those conclusions require separate examination after integrity verification has passed.

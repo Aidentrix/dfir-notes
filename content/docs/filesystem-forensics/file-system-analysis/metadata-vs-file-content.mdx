@@ -1,0 +1,12 @@
+---
+title: Metadata versus File Content
+description: Keep descriptive filesystem records separate from the bytes that make up file content.
+---
+
+Metadata describes an object; file content is the byte stream exposed as its data.
+
+Examples of metadata include file size, timestamps, allocation information, content-location references, flags, permissions, and parent information.
+
+In NTFS, the `$DATA` attribute represents file data. Its content can be resident inside the MFT record or non-resident in clusters elsewhere in the volume.
+
+The location of content is part of the metadata interpretation; the content bytes remain a separate evidence object.

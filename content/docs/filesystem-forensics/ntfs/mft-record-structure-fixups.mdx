@@ -1,0 +1,38 @@
+---
+title: MFT Record Structure and Fixups
+description: Decode the fixed MFT header and account for NTFS update-sequence fixups.
+---
+
+The offsets below are measured from the **beginning of one MFT record**.
+
+| MFT-record-relative offset | Length | Field |
+| --- | ---: | --- |
+| `0x00-0x03` | 4 bytes | Signature, normally `FILE` |
+| `0x04-0x05` | 2 bytes | Offset to fixup/update-sequence array |
+| `0x06-0x07` | 2 bytes | Number of entries in fixup array |
+| `0x08-0x0F` | 8 bytes | `$LogFile` sequence number (LSN) |
+| `0x10-0x11` | 2 bytes | Sequence value |
+| `0x12-0x13` | 2 bytes | Link count |
+| `0x14-0x15` | 2 bytes | Offset to first attribute |
+| `0x16-0x17` | 2 bytes | Flags |
+| `0x18-0x1B` | 4 bytes | Used record size |
+| `0x1C-0x1F` | 4 bytes | Allocated record size |
+| `0x20-0x27` | 8 bytes | File reference to base record |
+| `0x28-0x29` | 2 bytes | Next attribute identifier |
+
+The first-attribute offset is relative to the start of the MFT record.
+
+## Update-sequence / fixup mechanism
+
+NTFS uses fixups on multi-sector metadata structures:
+
+1. the original last two bytes of each participating sector are saved in the update-sequence array;
+2. those sector-tail bytes are replaced on disk with a common update-sequence value;
+3. on read, the sector-tail values are checked against the expected sequence value;
+4. if the checks succeed, the saved originals are restored for logical interpretation.
+
+For a 1024-byte MFT record across two 512-byte sectors, the raw on-disk bytes at record-relative offsets `510-511` and `1022-1023` can therefore contain the update-sequence value.
+
+A parser that applies fixups can legitimately show different logical sector-tail bytes from a raw on-disk hex view.
+
+Fixup validation can reveal an incomplete or inconsistent multi-sector write. It does not prove that every other field in the record is truthful.

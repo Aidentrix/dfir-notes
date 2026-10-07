@@ -1,0 +1,35 @@
+---
+title: Forensic Methodology
+description: Preserve evidence, identify structure, inspect bytes, validate interpretations, and document conclusions.
+---
+
+Digital-forensic conclusions should be traceable to evidence and to the structure used to interpret that evidence.
+
+~~~text
+preserve
+  ↓
+identify artifact and address space
+  ↓
+apply documented structure
+  ↓
+inspect relevant bytes or values
+  ↓
+interpret
+  ↓
+corroborate independently
+  ↓
+record conclusion and limits
+~~~
+
+Carrier separates preservation, evidence searching, and event reconstruction, and recommends preservation, isolation, correlation, and logging when developing procedures.
+
+## Evidence before interpretation
+
+For an important finding, be able to state:
+
+- what artifact was examined;
+- relative to what base the location was measured;
+- which structure defines the field;
+- what bytes or values were actually observed;
+- what transformation or parser produced the human-readable result;
+- what second observation supports the interpretation.

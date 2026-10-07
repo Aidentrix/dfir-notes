@@ -1,0 +1,15 @@
+---
+title: $FILE_NAME
+description: NTFS name and parent-reference metadata stored in an MFT attribute and directory indexes.
+---
+
+`$FILE_NAME` has the default type identifier `0x30`.
+
+In an MFT record it contains, among other values:
+
+- the file name in UTF-16;
+- a reference to the parent directory;
+- another set of NTFS temporal values;
+- size and flag fields defined by the attribute structure.
+
+A `$FILE_NAME` attribute also appears in directory indexing structures used for name-to-record relationships. The copies should not be assumed to be interchangeable observations.

@@ -1,0 +1,30 @@
+---
+title: Timestamp Encodings
+description: Separate stored timestamp representation from the examiner's interpretation of time.
+---
+
+A timestamp field is first a stored numeric representation. Converting it into a calendar date requires the field's documented epoch, unit, width, and interpretation rules.
+
+~~~text
+stored field
+  ↓
+encoding definition
+  ↓
+numeric value
+  ↓
+time conversion
+  ↓
+human-readable interpretation
+~~~
+
+## Windows FILETIME
+
+Carrier describes NTFS time values as 64-bit counts of **100-nanosecond intervals since 1601-01-01 00:00:00 UTC**.
+
+The same representation can appear in more than one NTFS attribute while update behavior differs by field and operating-system behavior. Name the artifact and timestamp field, not only the converted date.
+
+## Unix epoch values
+
+Carrier's ExtX discussion describes inode temporal values stored as seconds since **1970-01-01 00:00:00 UTC**.
+
+Do not infer an epoch from the magnitude of a number alone. Identify the structure and field first.

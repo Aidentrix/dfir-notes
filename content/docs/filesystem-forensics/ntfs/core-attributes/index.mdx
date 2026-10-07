@@ -1,0 +1,12 @@
+---
+title: Core Attributes
+description: Three NTFS attributes that recur throughout file and directory analysis.
+---
+
+This section introduces three common attributes without reproducing the full NTFS specification.
+
+- `$STANDARD_INFORMATION` contains core metadata such as timestamps and flags.
+- `$FILE_NAME` contains a file name and parent-directory reference together with additional metadata.
+- `$DATA` represents file data and can be resident or non-resident.
+
+An MFT record can contain other attribute types, and some files can have multiple attributes of the same type.

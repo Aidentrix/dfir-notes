@@ -1,0 +1,15 @@
+---
+title: $DATA
+description: NTFS file data, including resident and non-resident storage.
+---
+
+`$DATA` has the default type identifier `0x80`.
+
+For an ordinary file, the unnamed `$DATA` attribute represents its primary file content. NTFS can also store additional named `$DATA` attributes.
+
+The attribute can be:
+
+- **resident**, with content stored inside the MFT record; or
+- **non-resident**, with content stored in clusters described by run information.
+
+The attribute header remains metadata even when the content is non-resident. The bytes in referenced clusters are the content.
