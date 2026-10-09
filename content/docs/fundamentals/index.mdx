@@ -1,31 +1,63 @@
 ---
 title: Fundamentals
-description: Reusable DFIR concepts that should be understood before case-specific interpretation.
+description: Learn the representations, addressing models, and forensic reasoning used throughout the DFIR Journey.
 ---
 
-These pages contain concepts reused across investigations. Lab pages apply them to evidence rather than redefining them.
+Fundamentals are the reusable ideas that make later artifact analysis understandable. The goal is not to memorize isolated magic values. The goal is to learn how an examiner moves from raw bytes to a defensible interpretation.
 
 ~~~text
-artifact
-  ↓
-documented structure
-  ↓
-raw evidence
-  ↓
-interpretation
-  ↓
-independent validation
-  ↓
-conclusion
+evidence object
+    ↓
+locate the relevant bytes
+    ↓
+identify the documented structure
+    ↓
+decode the field using its defined representation
+    ↓
+interpret what the value means
+    ↓
+validate with an independent observation
+    ↓
+state the conclusion and its limits
 ~~~
 
-A forensic parser is interpretation machinery. Its output can be useful, but the parser is not the underlying evidence.
+A parser can accelerate this process, but parser output is still an interpretation of underlying evidence.
+
+## How sources are used
+
+These pages deliberately separate three kinds of material:
+
+**Source basis** — documented concepts and structures. The primary source for disk, volume, and filesystem structure is Brian Carrier's *File System Forensic Analysis*. The source-reviewed Project Chronos BCS-00 and BCS-01 notes reinforce number systems, hexadecimal, sectors, LBA, and PC storage concepts.
+
+**Worked evidence** — bytes and tool output actually observed in the NIST CFReDS Data Leakage PC image used in the lab.
+
+**Validation** — a second representation, calculation, or tool used to check whether the interpretation agrees with the evidence.
+
+The CFReDS lab is therefore an application of the fundamentals, not the source of the general rule.
 
 ## Learning path
 
-- [Forensic Methodology](/fundamentals/forensic-methodology)
-- [Data Representation](/fundamentals/data-representation)
-- [Offsets and Addressing](/fundamentals/offsets-addressing)
-- [Timestamp Encodings](/fundamentals/timestamp-encodings)
+Start here:
 
-The filesystem section then applies these ideas to partition tables, boot sectors, file records, and attributes.
+1. [Forensic Methodology](/fundamentals/forensic-methodology) — why preservation, correlation, and documentation matter.
+2. [Data Representation](/fundamentals/data-representation) — bits, bytes, hexadecimal, ASCII, fields, and byte order.
+3. [Offsets and Addressing](/fundamentals/offsets-addressing) — how byte offsets, sectors, LBA, partitions, and volume-relative addresses relate.
+4. [Timestamp Encodings](/fundamentals/timestamp-encodings) — how stored numeric time values become human-readable timestamps.
+
+The [Filesystem Forensics](/filesystem-forensics) section then applies these foundations to MBR, GPT, NTFS boot sectors, the MFT, attributes, and file data.
+
+## Evidence-first reading
+
+Whenever a page shows raw evidence, read it in this order:
+
+~~~text
+where am I?
+→ what bytes are present?
+→ what structure applies here?
+→ which bytes belong to the field?
+→ how is that field encoded?
+→ what value does it produce?
+→ what other observation agrees with it?
+~~~
+
+That discipline is more important than memorizing any single offset.

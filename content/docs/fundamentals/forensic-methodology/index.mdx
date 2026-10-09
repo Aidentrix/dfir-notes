@@ -1,35 +1,77 @@
 ---
 title: Forensic Methodology
-description: Preserve evidence, identify structure, inspect bytes, validate interpretations, and document conclusions.
+description: Preserve evidence, search deliberately, reconstruct events, correlate findings, and document the reasoning.
 ---
 
-Digital-forensic conclusions should be traceable to evidence and to the structure used to interpret that evidence.
+Digital forensics is not simply running tools against an image. A useful conclusion must remain traceable to the evidence and to the method used to interpret it.
+
+## Source basis
+
+Brian Carrier's *File System Forensic Analysis*, Chapter 1, presents a digital crime-scene investigation process with three major phases:
+
+1. **System preservation**
+2. **Evidence searching**
+3. **Event reconstruction**
+
+Carrier also gives the PICL guidelines—**preservation, isolation, correlation, and logging**—for developing forensic procedures.
+
+The sequence is not a rigid checklist. Carrier explicitly notes that investigations can use different procedures and that the phases need not occur strictly one after another.
+
+## From evidence to conclusion
+
+For structure-level analysis in this learning path, we use the following working model:
 
 ~~~text
-preserve
-  ↓
-identify artifact and address space
-  ↓
-apply documented structure
-  ↓
-inspect relevant bytes or values
-  ↓
-interpret
-  ↓
+preserve the evidence object
+        ↓
+identify the artifact and address space
+        ↓
+locate the raw bytes or stored value
+        ↓
+apply the documented structure
+        ↓
+decode the representation
+        ↓
+interpret the result
+        ↓
 corroborate independently
-  ↓
-record conclusion and limits
+        ↓
+record the conclusion and its limits
 ~~~
 
-Carrier separates preservation, evidence searching, and event reconstruction, and recommends preservation, isolation, correlation, and logging when developing procedures.
+This model complements Carrier's broader investigation phases. It is especially useful when examining partition tables, boot sectors, filesystem records, Registry values, and timestamps.
 
-## Evidence before interpretation
+## Evidence searching is hypothesis-driven
 
-For an important finding, be able to state:
+Carrier describes evidence searching as looking for data that support or refute hypotheses. That means an examiner should not search only for values that confirm an initial theory.
 
-- what artifact was examined;
-- relative to what base the location was measured;
-- which structure defines the field;
-- what bytes or values were actually observed;
-- what transformation or parser produced the human-readable result;
-- what second observation supports the interpretation.
+For example, a partition type value may suggest a filesystem family, but that alone should not end the examination. The filesystem itself should be inspected and independently identified.
+
+## Event reconstruction is a later step
+
+Finding a file, account, timestamp, or configuration value does not automatically explain what happened. Event reconstruction asks how artifacts relate to actions and sequence.
+
+That distinction matters throughout the DFIR Journey:
+
+~~~text
+artifact found ≠ event proven
+timestamp found ≠ actor identified
+account present ≠ account used for a specific action
+hash match ≠ case conclusion
+~~~
+
+## Questions to record for an important finding
+
+Be able to state:
+
+- What evidence object was examined?
+- What artifact or structure was located?
+- Relative to what base was its location measured?
+- What bytes or values were actually observed?
+- Which source defines how those bytes should be interpreted?
+- What transformation or parser produced the human-readable value?
+- What independent observation supports the interpretation?
+- What does the evidence establish?
+- What does it not establish?
+
+Those questions are the bridge between a command output and a defensible forensic conclusion.

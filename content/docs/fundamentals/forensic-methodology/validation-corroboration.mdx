@@ -1,22 +1,70 @@
 ---
 title: Validation and Corroboration
-description: Cross-check important interpretations against independent representations or sources.
+description: Check important interpretations against independent observations instead of treating one parser as authority.
 ---
 
-Carrier's correlation principle is useful at both the investigation level and the structure-decoding level.
+An interpretation becomes stronger when another independent observation agrees with it.
+
+## Source basis
+
+Carrier's **correlation** guideline recommends comparing important evidence with independent sources. His example is especially important for timestamps: if time matters, look for other records or events that can support the interpretation because stored timestamps can be changed.
+
+We use the same principle at the byte-structure level.
+
+## Structure-level validation
+
+A common pattern is:
 
 ~~~text
+raw bytes
+   ↓
+documented field definition
+   ↓
+manual or deterministic decode
+   ↓
 tool interpretation
-        ↓
-raw-byte inspection
-        ↓
-documented field layout
-        ↓
-manual or deterministic decoding
-        ↓
-comparison
+   ↓
+compare
 ~~~
 
-Examples include comparing an MBR starting-LBA field with `fdisk`, computing a partition offset from the observed sector size, and using `fsstat` instead of treating partition type `0x07` as proof of NTFS.
+The two paths should describe the same underlying structure without one simply repeating the other's output.
 
-When sources disagree, preserve the disagreement and investigate it rather than choosing the more convenient value.
+## Example — partition start
+
+In the CFReDS MBR, the first partition entry contains these four bytes at entry-relative offset `+0x08`:
+
+~~~text
+00 08 00 00
+~~~
+
+The MBR structure defines that field as the starting LBA. Decoding the field as little-endian gives:
+
+~~~text
+0x00000800 = 2048
+~~~
+
+Separately, `fdisk -l` reports the first partition starting at sector 2048.
+
+The manual decode and tool output agree.
+
+## Example — filesystem identification
+
+An MBR partition type such as `0x07` is a classification value in the partition table. It is not, by itself, proof of the exact filesystem stored inside the partition.
+
+A stronger workflow is:
+
+~~~text
+partition table suggests a type
+        ↓
+navigate to the partition
+        ↓
+inspect filesystem-level structure
+        ↓
+validate with a filesystem-aware tool
+~~~
+
+That is why the CFReDS partition investigation uses raw boot-sector evidence and `fsstat` rather than stopping at the MBR type byte.
+
+## When observations disagree
+
+Do not choose the value that is more convenient. Preserve the disagreement, verify the address space and units, check the structure definition, and determine whether the two observations are actually describing the same object.

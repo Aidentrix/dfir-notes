@@ -1,16 +1,55 @@
 ---
 title: Preservation and Integrity
-description: Protect the evidence object and keep later analysis distinguishable from the original.
+description: Preserve the evidence state and distinguish byte-stream integrity from broader evidentiary claims.
 ---
 
-Preservation aims to reduce avoidable modification of potential evidence.
+Preservation comes before interpretation because examination is useful only if we can explain what evidence object was examined and how its state was protected.
 
-For storage analysis, useful principles include retaining originals, analyzing working copies when possible, preventing writes to original media, hashing acquired data, and documenting operations that can change device or evidence state.
+## Source basis
+
+Carrier's **System Preservation Phase** is intended to reduce the amount of evidence that can be overwritten. His examples include working from duplicate copies, using write-blocking controls where writes are possible, and calculating cryptographic hashes for important saved data.
+
+The exact preservation procedure depends on the investigation, the system state, and organizational or legal requirements. A live system and a dead disk image do not have the same preservation constraints.
+
+## Original, acquisition, and working copy
+
+A useful mental model is:
+
+~~~text
+source device or original evidence
+             ↓
+        acquisition
+             ↓
+        evidence image
+             ↓
+       working analysis
+~~~
+
+The examiner should know which object is being hashed, mounted, parsed, or searched. A hash of one object should not silently be treated as a hash of another.
+
+For a raw `.dd` image, the image file is itself the raw byte stream being examined.
 
 ## Integrity is narrower than truth
 
 Integrity verification asks whether the examined byte stream matches the byte stream represented by a recorded verification value.
 
-A matching digest supports byte-for-byte consistency with that verification object. It does not by itself prove the acquisition captured every addressable area, that the source device was trustworthy, or that internal filesystem metadata is true.
+A successful comparison supports consistency between those byte streams.
 
-That distinction is used directly in [CFReDS Q01](/labs/nist-cfreds/q01-evidence-integrity).
+It does **not**, by itself, establish:
+
+- that every possible source area was acquired;
+- that a partition table is valid;
+- that a filesystem is internally consistent;
+- that an operating system value is truthful;
+- that a user performed an action;
+- or that a later forensic interpretation is correct.
+
+Those questions require separate examination.
+
+## Worked application — CFReDS Q01
+
+Our NIST CFReDS PC image was hashed locally before substantive examination.
+
+The calculated MD5 and SHA-1 values matched the recorded verification values, so the integrity gate was recorded as **PASS**.
+
+The complete evidence-specific procedure and literal digests are documented in [CFReDS Q01 — Evidence Integrity and Hashing](/labs/nist-cfreds/q01-evidence-integrity).

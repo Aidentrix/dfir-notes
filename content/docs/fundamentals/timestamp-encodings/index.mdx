@@ -1,30 +1,90 @@
 ---
 title: Timestamp Encodings
-description: Separate stored timestamp representation from the examiner's interpretation of time.
+description: Understand timestamps as stored numeric fields before converting them into calendar time.
 ---
 
-A timestamp field is first a stored numeric representation. Converting it into a calendar date requires the field's documented epoch, unit, width, and interpretation rules.
+A timestamp shown by a forensic tool is usually the end of a decoding process, not the value exactly as it exists on disk.
+
+A useful sequence is:
 
 ~~~text
-stored field
-  ↓
-encoding definition
-  ↓
-numeric value
-  ↓
-time conversion
-  ↓
-human-readable interpretation
+artifact structure
+      ↓
+timestamp field
+      ↓
+stored bytes
+      ↓
+integer interpretation
+      ↓
+epoch + unit
+      ↓
+human-readable time
+      ↓
+artifact-specific meaning
 ~~~
+
+## Source basis
+
+Carrier's NTFS analysis describes NTFS date/time values as 64-bit values representing the number of **100-nanosecond intervals since 1601-01-01 00:00:00 UTC**.
+
+Carrier's ExtX discussion describes inode time values as seconds since **1970-01-01 00:00:00 UTC**.
+
+These are two different timestamp representations. The correct conversion comes from the artifact's documented structure, not from guessing based on how large the number looks.
+
+## Four separate questions
+
+When examining a timestamp, ask:
+
+1. **Where is the field?**  
+   Which artifact and which field are we reading?
+
+2. **How wide is it?**  
+   Four bytes, eight bytes, or another size?
+
+3. **How is the stored integer encoded?**  
+   This includes byte order and signed/unsigned interpretation where applicable.
+
+4. **What time model does the field use?**  
+   Epoch, unit, timezone semantics, and artifact-specific update behavior.
+
+Skipping any of those steps can produce a plausible-looking but incorrect date.
 
 ## Windows FILETIME
 
-Carrier describes NTFS time values as 64-bit counts of **100-nanosecond intervals since 1601-01-01 00:00:00 UTC**.
+For the NTFS fields described by Carrier:
 
-The same representation can appear in more than one NTFS attribute while update behavior differs by field and operating-system behavior. Name the artifact and timestamp field, not only the converted date.
+~~~text
+stored value
+= number of 100-nanosecond intervals
+  since 1601-01-01 00:00:00 UTC
+~~~
 
-## Unix epoch values
+That means the raw eight-byte field must first be interpreted as the documented integer before it can be converted to a calendar value.
 
-Carrier's ExtX discussion describes inode temporal values stored as seconds since **1970-01-01 00:00:00 UTC**.
+The fact that two fields both use FILETIME does **not** mean they describe the same event. A creation time, content-modification time, metadata-modification time, and access time have different artifact meanings even when they share the same numeric encoding.
 
-Do not infer an epoch from the magnitude of a number alone. Identify the structure and field first.
+## Unix-style epoch seconds
+
+In Carrier's ExtX inode discussion:
+
+~~~text
+stored value
+= seconds since 1970-01-01 00:00:00 UTC
+~~~
+
+The epoch and unit are therefore different from NTFS FILETIME.
+
+Do not convert a value as Unix time merely because a tool or programming language makes Unix conversion convenient.
+
+## Representation is not event interpretation
+
+Even a perfectly converted timestamp does not by itself prove:
+
+- who caused the event;
+- which application caused it;
+- that the system clock was correct;
+- or that the field was never modified.
+
+This is why Carrier's correlation principle matters especially for time evidence.
+
+The Windows lab pages apply these ideas to Registry and account artifacts. Their evidence-specific timestamp values should be read as applications of this general model, not as the definition of the encodings themselves.
