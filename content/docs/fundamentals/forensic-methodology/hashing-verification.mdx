@@ -1,22 +1,72 @@
 ---
 title: Hashing and Verification
-description: Compare evidence byte streams without confusing a digest match with a case conclusion.
+description: Understand what a hash comparison tells an examiner—and what it does not.
 ---
 
-A cryptographic hash maps an input byte stream to a fixed-size digest. A forensic verification workflow compares a digest calculated from the evidence being examined with a digest recorded for the verification object.
+A cryptographic hash function consumes a byte stream and produces a fixed-size digest.
 
 ~~~text
-evidence bytes
-  ↓
-hash function
-  ↓
-calculated digest
-  ↓
-compare with recorded digest
-  ↓
-match or mismatch
+input bytes
+   ↓
+hash algorithm
+   ↓
+digest
 ~~~
 
-The CFReDS training lab calculates MD5 and SHA-1 because those are the verification values used by the exercise. A mismatch is a stop condition until the discrepancy is explained.
+If the input byte stream changes, the resulting digest is expected to change. For forensic verification, the practical question is whether the digest calculated from the evidence being examined matches a previously recorded digest for the comparison object.
 
-A hash match does not identify partitions, users, activity, or filesystem contents.
+## Source basis
+
+Carrier discusses cryptographic hashing in the preservation phase and gives MD5, SHA-1, and SHA-256 as examples of algorithms used to show whether saved data have changed.
+
+The CFReDS exercise uses MD5 and SHA-1 because those are the verification values associated with that training evidence. That historical lab choice should not be confused with a general recommendation that every new investigation use those algorithms.
+
+## Verification workflow
+
+~~~text
+identify the evidence object
+        ↓
+calculate digest over the complete object
+        ↓
+retrieve the recorded verification digest
+        ↓
+compare
+   ┌────┴────┐
+ match     mismatch
+   ↓           ↓
+record PASS   stop and explain discrepancy
+~~~
+
+The important point is that the two digests must refer to the intended comparison objects.
+
+## Worked application — CFReDS PC image
+
+The image used in this learning path is:
+
+~~~text
+cfreds_2015_data_leakage_pc.dd
+~~~
+
+It was hashed locally with:
+
+~~~bash
+md5sum cfreds_2015_data_leakage_pc.dd
+sha1sum cfreds_2015_data_leakage_pc.dd
+~~~
+
+Observed values:
+
+~~~text
+MD5:   a49d1254c873808c58e6f1bcd60b5bde
+SHA-1: afe5c9ab487bd47a8a9856b1371c2384d44fd785
+~~~
+
+Those calculated values matched the recorded verification values used for the evidence set.
+
+~~~text
+Verification: PASS
+~~~
+
+This establishes agreement of the compared byte stream with the recorded verification object. It does not identify partitions, filesystems, users, activity, or attribution.
+
+See [CFReDS Q01](/labs/nist-cfreds/q01-evidence-integrity) for the investigation-specific record.

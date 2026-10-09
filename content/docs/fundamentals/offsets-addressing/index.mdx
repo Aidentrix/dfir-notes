@@ -1,43 +1,167 @@
 ---
 title: Offsets and Addressing
-description: Keep relative offsets, absolute evidence offsets, sectors, LBAs, and volume-relative addresses distinct.
+description: Learn how xxd byte offsets, sectors, LBA addresses, partition starts, and volume-relative locations relate.
 ---
 
-An offset is meaningful only when its base is known.
+An address is useful only when you know its **base** and its **unit**.
+
+A value such as `0x30` is incomplete by itself. It might mean 48 bytes from the start of an NTFS boot sector, 48 bytes from the start of an MFT record, or something entirely different.
+
+## Source basis
+
+Carrier separates **volume analysis** from **file system analysis** and describes LBA as a sequential address assigned to sectors. His DOS-partition discussion defines the MBR partition entry fields, including starting LBA and size in sectors.
+
+Project Chronos BCS-01 reinforces the disk → partition → filesystem layering and the LBA calculations used here.
+
+The raw examples below come from the NIST CFReDS PC evidence image.
+
+## Address spaces used in this learning path
 
 | Address space | Offset zero means |
 | --- | --- |
-| Evidence image | Beginning of the image |
-| MBR | Beginning of disk / LBA 0 |
-| MBR partition entry | Beginning of that 16-byte entry |
-| NTFS boot sector | Beginning of the NTFS volume boot sector |
-| MFT record | Beginning of that individual MFT record |
-| NTFS attribute | Beginning of that attribute header |
+| Evidence image | first byte of the image |
+| Disk / MBR | beginning of LBA 0 |
+| MBR partition entry | first byte of that 16-byte entry |
+| NTFS volume | first byte of that partition / volume |
+| MFT record | first byte of the individual record |
+| NTFS attribute | first byte of that attribute |
 
-A bare value such as `0x30` is ambiguous until the address space is named.
+Always name the address space when an offset could be ambiguous.
 
-## Sectors and LBA
+## A byte offset is not an LBA
 
-LBA is a sector address, not a byte address. Once the logical sector size has been established:
-
-~~~text
-absolute byte offset = LBA × logical sector size
-~~~
-
-Do not assume 512-byte logical sectors globally. In CFReDS Q02, `fdisk` reports 512 bytes for that image:
+The CFReDS image reports:
 
 ~~~text
-2048 × 512 = 1,048,576 = 0x100000
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
 ~~~
+
+For **this evidence image**, one logical sector therefore contains 512 bytes.
+
+That makes the first few LBA addresses:
+
+~~~text
+LBA 0 → byte offset 0 × 512 = 0       = 0x00000000
+LBA 1 → byte offset 1 × 512 = 512     = 0x00000200
+LBA 2 → byte offset 2 × 512 = 1024    = 0x00000400
+~~~
+
+Do not generalize the 512-byte value to every device. Establish the logical sector size first.
+
+## See the addresses in `xxd`
+
+LBA 0 begins at image offset zero:
+
+~~~text
+00000000: 33 c0 8e d0 bc 00 7c 8e c0 8e d8 be 00 7c bf 00  3.....|......|..
+~~~
+
+LBA 1 begins at `0x200`:
+
+~~~text
+00000200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+~~~
+
+LBA 2 begins at `0x400`:
+
+~~~text
+00000400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+~~~
+
+An LBA is simply an address. It does not promise that a named structure exists there. In this image, the sectors shown at LBA 1 and LBA 2 are zero-filled.
+
+## Navigating from an MBR field to a byte offset
+
+The first MBR partition entry contains:
+
+~~~text
+000001be: 80 20 21 00 07 df 13 0c 00 08 00 00 00 20 03 00  . !.......... ..
+~~~
+
+Carrier's DOS partition-entry structure defines bytes `+0x08..+0x0B` as the **starting LBA**.
+
+Observed field:
+
+~~~text
+00 08 00 00
+~~~
+
+Little-endian decode:
+
+~~~text
+0x00000800 = 2048
+~~~
+
+Now convert the sector address to an image-absolute byte offset using the observed logical sector size:
+
+~~~text
+2048 × 512
+= 1,048,576
+= 0x00100000
+~~~
+
+When we navigate to that exact byte offset, `xxd` shows:
+
+~~~text
+00100000: eb 52 90 4e 54 46 53 20 20 20 20 00 02 08 00 00  .R.NTFS    .....
+~~~
+
+The arithmetic and the raw evidence agree.
+
+## Partition 2
+
+The second partition begins at LBA 206848.
+
+~~~text
+206848 × 512
+= 105,906,176
+= 0x06500000
+~~~
+
+The evidence at that image-absolute offset begins:
+
+~~~text
+06500000: eb 52 90 4e 54 46 53 20 20 20 20 00 02 08 00 00  .R.NTFS    .....
+~~~
+
+Again, the LBA value is not the byte offset. It must be converted using the logical sector size established for the image.
 
 ## Volume-relative addressing
 
-Filesystem structures often use addresses relative to the beginning of a volume.
+Once inside a partition, filesystem structures can use locations relative to the beginning of that volume.
+
+For example, if an NTFS boot sector gives an MFT cluster number, an image-absolute location can be calculated as:
 
 ~~~text
-image-absolute offset
-= partition start
-+ (volume-relative cluster × cluster size)
+image-absolute MFT offset
+= partition start byte offset
++ (MFT cluster number × cluster size)
 ~~~
 
-The base and the unit must both be established before the arithmetic is meaningful.
+The units must match before addition.
+
+In the CFReDS Partition 2 example:
+
+~~~text
+partition start    = 0x06500000
+MFT cluster        = 786432
+cluster size       = 4096 bytes
+
+786432 × 4096      = 0xC0000000
+
+0x06500000
++0xC0000000
+------------
+ 0xC6500000
+~~~
+
+At that calculated location, the evidence begins:
+
+~~~text
+c6500000: 46 49 4c 45 30 00 03 00 e0 5f 52 16 00 00 00 00  FILE0...._R.....
+~~~
+
+That is the transition from volume-relative filesystem addressing back to an absolute location in the evidence image.
+
+See [CFReDS Q02](/labs/nist-cfreds/q02-partition-layout) for the complete partition investigation and [NTFS Boot Sector](/filesystem-forensics/ntfs/boot-sector) for the filesystem structure that supplies the NTFS values.

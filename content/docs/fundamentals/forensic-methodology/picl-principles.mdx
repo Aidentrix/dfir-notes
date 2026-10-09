@@ -1,15 +1,58 @@
 ---
 title: PICL Principles
-description: Carrier's preservation, isolation, correlation, and logging guidelines.
+description: Carrier's preservation, isolation, correlation, and logging guidelines for developing forensic procedures.
 ---
 
-Carrier uses **PICL** as a compact set of forensic-procedure guidelines:
+PICL is Carrier's compact set of guidelines for performing and documenting forensic procedures:
 
-| Principle | Examiner focus |
-| --- | --- |
-| Preservation | Minimize avoidable changes and retain recoverable originals or copies. |
-| Isolation | Keep suspect data and risky execution separated from the analysis environment and outside systems. |
-| Correlation | Support important findings with independent sources or observations when practical. |
-| Logging | Record actions, searches, commands, results, and procedural decisions. |
+~~~text
+P  Preservation
+I  Isolation
+C  Correlation
+L  Logging
+~~~
 
-PICL does not replace organizational legal, laboratory, or chain-of-custody requirements. It is a technical discipline for performing and documenting analysis without making the tool itself the authority.
+## Source basis
+
+The framework comes from the **General Guidelines** section of Chapter 1 of Brian Carrier's *File System Forensic Analysis*.
+
+It is guidance for forensic procedure, not a substitute for an organization's legal, laboratory, regulatory, or chain-of-custody requirements.
+
+## Preservation
+
+Avoid unnecessary modification of potential evidence.
+
+Carrier's examples include analyzing copies, calculating hashes of important data, using write-blocking controls where appropriate, and minimizing actions that may overwrite evidence.
+
+The practical question is:
+
+> What could this examination step change, and how am I controlling or documenting that risk?
+
+## Isolation
+
+Keep the analysis environment appropriately separated from suspect data and from outside systems.
+
+Carrier emphasizes that suspect content can contain executable or active material and that live analysis inherently weakens isolation because the examiner is operating through the suspect system itself.
+
+## Correlation
+
+Support important findings with independent evidence or observations when practical.
+
+For this learning path, correlation also means comparing manual structure decoding with a second representation such as `fdisk`, `fsstat`, another parser, or another artifact.
+
+## Logging
+
+Document actions, searches, commands, results, and procedural decisions.
+
+Good logging lets another examiner understand not merely the final value, but how it was obtained.
+
+~~~text
+command
+→ input object
+→ relevant output
+→ interpretation
+→ validation
+→ conclusion
+~~~
+
+PICL is therefore visible throughout both the Fundamentals pages and the CFReDS lab.

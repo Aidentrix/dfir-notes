@@ -1,32 +1,81 @@
 ---
 title: References
-description: Primary source material, public datasets, tool documentation, and reference discipline.
+description: Primary conceptual sources, public training evidence, tool documentation, and the rules used to keep them distinct.
 ---
 
-## Primary learning sources
+## Primary conceptual sources
 
-- Brian Carrier, *File System Forensic Analysis*, Addison-Wesley, 2005.
-- Project Chronos source-reviewed study notes for BCS-00 Number Systems and BCS-01 PC Introduction.
+### Brian Carrier — File System Forensic Analysis
+
+Brian Carrier, *File System Forensic Analysis*, Addison-Wesley, 2005.
+
+This is the primary structural source for the current low-level learning material, including:
+
+- the digital crime-scene investigation phases and PICL guidelines;
+- data structures, byte ranges, and low-level hex inspection;
+- volume analysis and LBA concepts;
+- DOS/MBR partition structures;
+- the general filesystem-analysis model;
+- NTFS concepts, the boot sector, MFT, attributes, and fixups;
+- NTFS timestamp representation;
+- ExtX inode timestamp representation.
+
+The public notes paraphrase and teach from those concepts rather than reproducing long passages from the book.
+
+### Project Chronos
+
+Current source-reviewed study authority used publicly:
+
+- **BCS-00 — Number Systems**
+- **BCS-01 — PC Introduction**
+
+These reinforce binary, hexadecimal, ASCII, byte order, sectors, LBA, and disk/partition/filesystem layering.
 
 Project Chronos modules whose source remains **PENDING** are not treated as completed source authority.
 
-## Public training material
+## Worked evidence source
 
-- [NIST CFReDS Data Leakage Case](https://cfreds-archive.nist.gov/data_leakage_case/data-leakage-case.html)
+### NIST CFReDS Data Leakage Case
 
-## Tools and documentation
+[NIST CFReDS Data Leakage Case](https://cfreds-archive.nist.gov/data_leakage_case/data-leakage-case.html)
+
+The CFReDS PC image is used as **worked evidence**. Raw `xxd` excerpts, `fdisk` output, calculated offsets, filesystem observations, Registry values, and other case-specific findings belong to the lab evidence layer.
+
+A value observed in CFReDS is not automatically a universal filesystem rule.
+
+## Tools
 
 - [The Sleuth Kit](https://www.sleuthkit.org/)
+- `xxd` for raw hexadecimal/ASCII display
+- standard Linux utilities used in the reproducible lab workflow
+
+Site implementation documentation also uses:
+
 - [Fumadocs](https://www.fumadocs.dev/)
 - [shadcn/ui](https://ui.shadcn.com/)
 
 ## Reference discipline
 
+Throughout the DFIR Journey, keep these categories separate:
+
 ~~~text
-documented structure -> how a field is interpreted
-observed bytes       -> what the evidence actually contains
-tool output          -> one parser's interpretation
-validation           -> comparison with an independent observation
+source-defined structure
+    → tells us how a field is laid out
+
+observed evidence bytes
+    → tells us what the examined object actually contains
+
+tool output
+    → gives one interpretation or presentation of the evidence
+
+manual/deterministic decode
+    → makes the transformation explicit
+
+independent validation
+    → checks whether another observation agrees
+
+conclusion
+    → states only what those observations support
 ~~~
 
-When offsets are published, the page names the base address space so image-absolute, volume-relative, record-relative, and attribute-relative coordinates are not conflated.
+When offsets are published, the relevant base address space should be named so image-absolute, volume-relative, record-relative, and attribute-relative coordinates are not conflated.

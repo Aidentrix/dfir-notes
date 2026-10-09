@@ -1,11 +1,35 @@
 ---
 title: Data Representation
-description: Bits, bytes, hexadecimal, ASCII, multi-byte integers, and byte order.
+description: Learn how bits, bytes, hexadecimal, ASCII, fields, and byte order appear in an actual forensic hex view.
 ---
 
-Digital evidence is stored as bytes. Binary, hexadecimal, decimal, and text views are different representations of underlying values.
+Before interpreting a partition table, boot sector, Registry value, or filesystem record, an examiner needs to be comfortable looking at raw bytes.
 
-One hexadecimal digit represents four bits; two hexadecimal digits represent one byte.
+This page uses normal `xxd` output because that is what the evidence looks like during low-level examination.
+
+## Source basis
+
+Carrier's introductory computer-foundations material explains how data structures assign meaning to byte ranges and uses `xxd` to show offsets, hexadecimal data, and printable ASCII.
+
+Project Chronos **BCS-00 — Number Systems** reinforces binary, hexadecimal, ASCII, and byte order. **BCS-01 — PC Introduction** applies those representations to sectors, LBA, and partition structures.
+
+The raw examples below are from our NIST CFReDS Data Leakage PC image.
+
+## Bits, nibbles, and bytes
+
+A **bit** is a binary digit:
+
+~~~text
+0 or 1
+~~~
+
+Four bits can be represented by one hexadecimal digit:
+
+~~~text
+binary 1111 = hexadecimal F
+~~~
+
+Eight bits make one byte. A byte therefore needs two hexadecimal digits:
 
 ~~~text
 binary      01001000
@@ -14,27 +38,117 @@ decimal     72
 ASCII       H
 ~~~
 
-A hex dump does not transform evidence. It presents the same bytes in a compact numeric form.
+Hexadecimal is useful because it is a compact way to display bytes. It does not change the evidence.
 
-## ASCII
+## Reading an actual `xxd` line
 
-~~~text
-46 49 4c 45
- F  I  L  E
+We displayed the first sector of the CFReDS image with:
+
+~~~bash
+xxd -g 1 -c 16 -s 0 -l 512 cfreds_2015_data_leakage_pc.dd
 ~~~
 
-Those bytes spell `FILE`. In NTFS they are significant when observed in the signature field at the beginning of an MFT record.
+The first line was:
+
+~~~text
+00000000: 33 c0 8e d0 bc 00 7c 8e c0 8e d8 be 00 7c bf 00  3.....|......|..
+~~~
+
+Read it as three visual regions:
+
+~~~text
+00000000:  33 c0 8e d0 bc 00 7c 8e c0 8e d8 be 00 7c bf 00  3.....|......|..
+^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+offset     sixteen evidence bytes                           printable ASCII view
+~~~
+
+With this command:
+
+- `-g 1` groups the display one byte at a time;
+- `-c 16` prints sixteen bytes per row;
+- `-s` chooses the starting byte offset;
+- `-l` limits how many bytes are displayed.
+
+The left column in this output is a **hexadecimal byte offset**. The ASCII column is only another rendering of the same bytes. A dot means the byte does not map to a printable character in that display; it does not mean that the byte is zero.
+
+## ASCII is only one interpretation
+
+At the first sector of Partition 2 we observed:
+
+~~~text
+06500000: eb 52 90 4e 54 46 53 20 20 20 20 00 02 08 00 00  .R.NTFS    .....
+~~~
+
+The middle bytes contain:
+
+~~~text
+4e 54 46 53
+ N  T  F  S
+~~~
+
+Those four bytes can be rendered as the ASCII text `NTFS`. Their forensic significance comes from where they occur and from the structure being examined—not merely because readable letters appear on screen.
+
+## Byte ranges become fields only when a structure defines them
+
+Consider the first MBR partition entry from the same image:
+
+~~~text
+000001be: 80 20 21 00 07 df 13 0c 00 08 00 00 00 20 03 00  . !.......... ..
+~~~
+
+That is sixteen raw bytes. The bytes do not label themselves.
+
+The documented DOS/MBR partition-entry structure tells us how to divide them:
+
+| Entry-relative bytes | Observed bytes | Defined field |
+| --- | --- | --- |
+| `+0x00` | `80` | boot/status flag |
+| `+0x01..+0x03` | `20 21 00` | starting CHS |
+| `+0x04` | `07` | partition type |
+| `+0x05..+0x07` | `df 13 0c` | ending CHS |
+| `+0x08..+0x0B` | `00 08 00 00` | starting LBA |
+| `+0x0C..+0x0F` | `00 20 03 00` | size in sectors |
+
+This is the key idea:
+
+~~~text
+raw bytes + documented structure = fields that can be interpreted
+~~~
 
 ## Multi-byte integers and little endian
 
-A multi-byte field has a location, width, and encoding. Identify all three before conversion.
-
-For a field defined as a 4-byte little-endian integer:
+The starting-LBA field is four bytes wide:
 
 ~~~text
 00 08 00 00
-→ 0x00000800
-→ 2048
 ~~~
 
-Do not reverse arbitrary byte sequences merely because a host machine is little endian. The structure definition determines the field's byte order.
+For this documented field, the least-significant byte is stored first. Interpreting it as little-endian gives:
+
+~~~text
+stored bytes:     00 08 00 00
+numeric value:    0x00000800
+decimal value:    2048
+~~~
+
+Do not reverse arbitrary bytes merely because an x86 system is little-endian. First identify the field, its width, and the byte order defined for that structure.
+
+ASCII strings are a good counterexample: the bytes spelling `NTFS` are read in character order rather than reversed as one integer.
+
+## From representation to evidence
+
+Later pages will use exactly this process:
+
+~~~text
+xxd view
+  ↓
+locate bytes
+  ↓
+apply structure
+  ↓
+decode field
+  ↓
+validate interpretation
+~~~
+
+See [CFReDS Q02 — Partition Layout](/labs/nist-cfreds/q02-partition-layout) for the full evidence-specific MBR analysis.
